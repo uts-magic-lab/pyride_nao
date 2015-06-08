@@ -1,0 +1,15 @@
+# libcelt pkg-config source file
+
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: celt
+Description: CELT is a low-delay audio codec
+Version: 0.11.1
+Requires:
+Conflicts:
+Libs: -L${libdir} -lcelt0
+Libs.private: -lm
+Cflags: -I${includedir}
