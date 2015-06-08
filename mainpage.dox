@@ -1,0 +1,43 @@
+/**
+\mainpage
+
+<!-- 
+Provide an overview of your package.
+-->
+PyRIDE, Python based Robot Interactive Development Environment, is a
+software development framework for rapid robot behaviour programming in Python scripting language. It is also an integration framework for bring disparate robot functional modules together. This documentation gives a detailed description of application programming interface of PyRIDE on NAO robot.
+
+\section compile Compile and Install from source for NAO
+\subsection require Prerequisites
+PyRIDE on NAO uses the qibuild system(v1.14.3). It requires a full NAOQi SDK(v1.14.3) installation with associated cross compiler on a Linux/OS X system. The respository contains all required third
+party libraries modified to compile under qibuild system. 
+
+\subsection compile To compile PyRIDE for NAO
+-# Get source code: <b>git clone https://github.com/uts-magic-lab/pyride_nao.git</b> under a <b>src</b> directory.
+-# Compile and install the following modules under <b>libsrc</b> subdirectory using <b>qibuild</b> and <b>qitoolchain</b> commands (see qibuild documentation for the details).
+
+  - commoncpp2-1.8.1
+  - ccrtp-1.7.2
+  - celt-0.11.1
+  - PyRideCore
+
+-# Compile <b>PyNaoServer</b> using qibuild.
+
+\subsection install To install PyRIDE on NAO
+
+\section codeapi Code API
+PyNAO
+
+<!--
+Provide links to specific auto-generated API documentation within your
+package that is of particular interest to a reader. Doxygen will
+document pretty much every part of your code, so do your best here to
+point the reader to the actual API.
+
+If your codebase is fairly large or has different sets of APIs, you
+should use the doxygen 'group' tag to keep these APIs together. For
+example, the roscpp documentation has 'libros' group.
+-->
+
+
+*/
