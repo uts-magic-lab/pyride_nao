@@ -70,9 +70,8 @@ static PyObject * PyModule_declare( PyObject * self )
   Py_RETURN_NONE;
 }
 
-/*! \fn disconnect( username )
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef disconnect( username )
+ *  \memberof PyNAO.
  *  \brief Disconnect all remote clients.
  *  \param str username. Optional name of an online user to be disconnected. If no username is provided. All connected clients will be disconnected.
  *  \return None
@@ -103,9 +102,8 @@ static PyObject * PyModule_disconnect( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn blockRemoteExclusiveControl( toblock )
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef blockRemoteExclusiveControl( toblock )
+ *  \memberof PyNAO.
  *  \brief Block or unblock exclusive control of connected remote clients.
  *
  *  Allow or block the exclusive control right of remote clients. If a client
@@ -130,9 +128,8 @@ static PyObject * PyModule_BlockRemoteExclusiveControl( PyObject * self, PyObjec
   Py_RETURN_NONE;
 }
 
-/*! \fn updateOperationalStatus(op_state, op_text)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef updateOperationalStatus(op_state, op_text)
+ *  \memberof PyNAO.
  *  \brief Send robot operational status notification to all connected remote clients.
  *  \param int op_state. Must be a positive integer representing the operational status.
  *  \param str op_text. Optional text for the operational status.
@@ -170,9 +167,8 @@ static PyObject * PyModule_UpdateOperationalStatus( PyObject * self, PyObject * 
  *
  */
 /**@{*/
-/*! \fn takeCameraSnapshot( all_camera )
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef takeCameraSnapshot( all_camera )
+ *  \memberof PyNAO.
  *  \brief Take a snapshot for the robot camera(s)
  *  \param bool all_camera. Take a snapshot from all available cameras.
  *  \return None
@@ -196,9 +192,8 @@ static PyObject * PyModule_TakeCameraSnapshot( PyObject * self, PyObject * args 
   Py_RETURN_NONE;
 }
 
-/*! \fn getMyIPAddress()
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef getMyIPAddress()
+ *  \memberof PyNAO.
  *  \brief Get the IP address of the robot.
  *  \return The robot IP address in text.
  */
@@ -233,9 +228,8 @@ static PyObject * PyModule_UpdateRobotTelemetry( PyObject * self, PyObject * arg
  *
  */
 /**@{*/
-/*! \fn listCurrentUsers()
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef listCurrentUsers()
+ *  \memberof PyNAO.
  *  \brief Return a list of users who are currently logged in through remote clients.
  *
  *  \return A list of user names.
@@ -255,9 +249,8 @@ static PyObject * PyModule_ListCurrentUsers( PyObject * self )
   return retList;
 }
 
-/*! \fn listAllUsers()
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef listAllUsers()
+ *  \memberof PyNAO.
  *  \brief Return a list of users who can log in remotely.
  *
  *  \return A list of user names.
@@ -277,9 +270,8 @@ static PyObject * PyModule_ListAllUsers( PyObject * self )
   return retList;
 }
 
-/*! \fn saveConfiguration()
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef saveConfiguration()
+ *  \memberof PyNAO.
  *  \brief Save the current user access configuration.
  *
  *  \return None.
@@ -290,9 +282,8 @@ static PyObject * PyModule_SaveConfiguration( PyObject * self )
   Py_RETURN_NONE;
 }
 
-/*! \fn addUser(user_name, user_password)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef addUser(user_name, user_password)
+ *  \memberof PyNAO.
  *  \brief Add a new remote user into the system.
  *  \param str user_name.
  *  \param str user_password.
@@ -315,9 +306,8 @@ static PyObject * PyModule_AddUser( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn removeUser(user_name)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef removeUser(user_name)
+ *  \memberof PyNAO.
  *  \brief Remove an existing remote user from the system.
  *  \param str user_name name.
  *  \return None.
@@ -337,9 +327,8 @@ static PyObject * PyModule_RemoveUser( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn changeUserPassword(user_name, old_password, new_password)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef changeUserPassword(user_name, old_password, new_password)
+ *  \memberof PyNAO.
  *  \brief Change an existing remote user's password.
  *  \param str user_name name.
  *  \param str old_password.
@@ -369,9 +358,8 @@ static PyObject * PyModule_ChangeUserPassword( PyObject * self, PyObject * args 
  *
  */
 /**@{*/
-/*! \fn addTimer(init_start, repeats, interval)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef addTimer(init_start, repeats, interval)
+ *  \memberof PyNAO.
  *  \brief Add a timer object
  *  \param int init_start. Initial start time (in seconds) after the method is called.
  *  \param long repeats. A number of times the timer shall be called. -1 means infinite.
@@ -400,9 +388,8 @@ static PyObject * PyModule_AddTimer( PyObject * self, PyObject * args )
   return Py_BuildValue( "l", timerID );
 }
 
-/*! \fn removeTimer(timer_id)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef removeTimer(timer_id)
+ *  \memberof PyNAO.
  *  \brief Remove a timer object.
  *  \param long timer_id. ID of the timer object pending for removal.
  *  \return None.
@@ -438,9 +425,8 @@ static PyObject * PyModule_RemoveTimer( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn isTimerRunning(timer_id)
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef isTimerRunning(timer_id)
+ *  \memberof PyNAO.
  *  \brief Check whether a timer object is still alive.
  *  \param long timer_id. ID of the timer object.
  *  \return True = timer is alive; False = timer is dead.
@@ -466,9 +452,8 @@ static PyObject * PyModule_IsTimerRunning( PyObject * self, PyObject * args )
   }
 }
 
-/*! \fn removeAllTimers()
- *  \memberof PyPR2
- *  \memberof PyNAO
+/*! \typedef removeAllTimers()
+ *  \memberof PyNAO.
  *  \brief Remove all timer objects in the system.
  *  \return None.
  */
@@ -559,6 +544,35 @@ static PyObject * PyModule_DispatchVideoData( PyObject * self, PyObject * args, 
   }
 }
 
+/*! \typedef setTeamMemberID(member_id, team_id)
+ *  \memberof PyNAO.
+ *  \brief Sets the ID number of the robot.
+ *
+ *  The robot can be assigned as a member
+ *  of blue team (number 1) or pink team (number 2). This facilitates robot to
+ *  robot communication.
+ *  \note This function is inherited from robot soccer competition
+ *  code for NAO.
+ *  \param int member_id. Must be a non-negative integer.
+ *  \param int team_id. Must be either 1 (blue team) or 2 (pink team).
+ *  \return None.
+ */
+
+/*! \typedef say(text)
+ *  \memberof PyNAO.
+ *  \brief Use Text-to-Speech system to say the input text.
+ *  \param str text. Text to be spoken by the robot.
+ *  \return None.
+ */
+
+/*! \typedef sendTeamMessage( message )
+ *  \memberof PyNAO.
+ *  \brief Broadcast a message to other robots in the same team (colour).
+ *
+ *  \param str message. A text based message.
+ *  \return None
+ *  \note (legacy) This is based on the team colour assignment defined in pyrideconfig.xml
+ */
 
 #undef INCLUDE_COMMON_PYMODULE_MEHTODS
 #endif
