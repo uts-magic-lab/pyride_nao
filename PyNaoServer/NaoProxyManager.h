@@ -89,6 +89,7 @@ public:
 
   bool getHeadPos( float & yaw, float & pitch );
   void moveHeadTo( const float yaw, const float pitch, bool absolute = false );
+  void updateHeadPos( const float yaw, const float pitch );
   void setHeadStiffness( const float stiff );
 
   void getBodyJointsPos( std::vector<float> & positions,

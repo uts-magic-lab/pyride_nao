@@ -197,6 +197,20 @@ static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
+static PyObject * PyModule_NaoUpdateHeadPos( PyObject * self, PyObject * args )
+{
+  double yaw = 0.0;
+  double pitch = 0.0;
+
+  if (!PyArg_ParseTuple( args, "dd", &yaw, &pitch )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  NaoProxyManager::instance()->updateHeadPos( yaw, pitch );
+  Py_RETURN_NONE;
+}
+
 /*! \fn sit(is_relax)
  *  \memberof PyNAO
  *  \brief Move the robot into a sitting pose.
@@ -1037,6 +1051,8 @@ static PyMethodDef PyModule_methods[] = {
     "Let NAO speak with an optional volume." },
   { "moveHeadTo", (PyCFunction)PyModule_NaoMoveHeadTo, METH_VARARGS,
     "Move NAO head to a new position." },
+  { "updateHeadPos", (PyCFunction)PyModule_NaoUpdateHeadPos, METH_VARARGS,
+    "Change NAO head position with a specific angle in radian." },
   { "getHeadPos", (PyCFunction)PyModule_NaoGetHeadPos, METH_NOARGS,
     "Get NAO's head position." },
   { "setHeadStiffness", (PyCFunction)PyModule_NaoSetHeadStiffness, METH_VARARGS,

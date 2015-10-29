@@ -213,6 +213,32 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absol
   }
 }
 
+void NaoProxyManager::updateHeadPos( const float yaw, const float pitch )
+{
+  if (motionProxy_) {
+    AL::ALValue names = "Head";
+    AL::ALValue newHeadPos;
+    AL::ALValue stiff = 1.0f;
+
+    newHeadPos.arraySetSize( 2 );
+
+    std::vector<float> curHeadPos;
+    motionProxy_->setStiffnesses( names, stiff );
+
+    curHeadPos = motionProxy_->getAngles( names, true );
+
+    newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
+    newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
+
+    try {
+      motionProxy_->setAngles( names, newHeadPos, 0.8 );
+    }
+    catch (...) {
+      ERROR_MSG( "Unable to change angles to %s", newHeadPos.toString().c_str() );
+    }
+  }
+}
+
 void NaoProxyManager::setHeadStiffness( const float stiff )
 {
   if (motionProxy_ && stiff >= 0.0 && stiff <= 1.0) {
