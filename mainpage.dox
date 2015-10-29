@@ -21,9 +21,41 @@ party libraries modified to compile under qibuild system.
   - celt-0.11.1
   - PyRideCore
 
--# Compile <b>PyNaoServer</b> using qibuild.
+-# Compile <b>PyNaoServer</b> using <b>qibuild</b>.
 
 \subsection install To install PyRIDE on NAO
+Under a NAO terminal (using ssh), copy the following share library objects extracted from the packages (or copy directly from the <b>build-cross-geode-release/sdk/lib</b> sub-directory under the source directories) built in the previous section to <b>/usr/lib</b> directory on the robot. You will require root privilege to copy these files on the robot.
+
+  - libccext2.so
+  - libccrtp.so
+  - libccgnu2.so
+  - libcelt.so
+  - libpyridecore.so
+
+Place <b>libpynaoserver.so</b> extracted from the PyNaoServer under <b>/home/nao/naoqi/lib</b> on the NAO robot. Similarly, copy the entire <b>scripts</b> under the repository to <b>/home/nao/naoqi/lib</b> and rename the directory to <b>python</b>.
+
+Create an <b>autoload.ini</b> file under <b>/home/nao/naoqi/preference</b> with the following content:
+
+\code
+# autoload.ini
+#
+# Use this file to list the cross-compiled modules that you wish to load.
+# You must specify the full path to the module, python module or program.
+
+[user]
+#the/full/path/to/your/liblibraryname.so  # load liblibraryname.so
+/home/nao/naoqi/lib/libpynaoserver.so
+
+[python]
+#the/full/path/to/your/python_module.py   # load python_module.py
+
+[program]
+#the/full/path/to/your/program            # load program
+\endcode
+
+<b>autoload.ini</b> will automatically load PyNaoServer when NaoQi starts.
+
+<b>NOTE:</b> PyRIDE configuration file <b>pyrideconfig.xml</b> will be automatically generated under <b>/home/nao/naoqi/preference</b> when PyRIDE for NAO is successfully run and *properly* shutdown. As older NaoQi systems do not properly shutdown PyRIDE module when shutting down the robot by pressing the centre button, you may have to call \c PyNAO.saveConfiguration command to save important configuration, e.g. remote user access account, periodically.
 
 \section codeapi Code API
 PyNAO

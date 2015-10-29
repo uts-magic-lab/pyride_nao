@@ -228,7 +228,7 @@ static PyObject * PyModule_NaoSit( PyObject * self, PyObject * args )
 /*! \fn stand(is_init)
  *  \memberof PyNAO
  *  \brief Move the robot into a standing pose.
- *  \param bool is_init. Optional. True = A standing pose ready for walk; False = Default stranding pose.
+ *  \param bool is_init. Optional. True = A standing pose ready for walk; False = Default standing pose.
  *  \return None.
  */
 static PyObject * PyModule_NaoStand( PyObject * self, PyObject * args )
@@ -293,6 +293,11 @@ static PyObject * PyModule_NaoCrouch( PyObject * self )
   Py_RETURN_NONE;
 }
 
+/*! \fn getHeadPos()
+ *  \memberof PyNAO
+ *  \brief Get the current robot head yaw and pitch in radian.
+ *  \return tuple(head_yaw, head_pitch)
+ */
 static PyObject * PyModule_NaoGetHeadPos( PyObject * self )
 {
   float yaw = 0.0;
@@ -461,7 +466,7 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
 
 /*! \fn moveArmWithJointPos(joint_position, frac_max_speed)
  *  \memberof PyNAO
- *  \brief Move a NAO's arm to the specified joint position withi a certain speed.
+ *  \brief Move a NAO's arm to the specified joint position with a certain speed.
  *  \param dict joint_position. A dictionary of arm joint positions in radian.
  *  The dictionary must the same structure as the return of PyNAO.getArmJointPositions.
  *  \param float frac_max_speed. Fraction of the maximum motor speed.

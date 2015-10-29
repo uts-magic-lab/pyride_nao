@@ -172,8 +172,8 @@ static PyObject * PyModule_UpdateOperationalStatus( PyObject * self, PyObject * 
  *  \brief Take a snapshot for the robot camera(s)
  *  \param bool all_camera. Take a snapshot from all available cameras.
  *  \return None
- *  \note Image(s) taken from the robot camera(s) will be saved in <b>/removeable/recordings/cameras</b>
- *  directory on the PR2.
+ *  \note Image(s) taken from the robot camera(s) will be saved in <b>/home/nao/recordings/cameras</b>
+ *  directory on the NAO.
  */
 static PyObject * PyModule_TakeCameraSnapshot( PyObject * self, PyObject * args )
 {
