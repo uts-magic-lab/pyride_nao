@@ -188,7 +188,7 @@ bool NaoCam::getDefaultVideoSettings()
 {
   vSettings_.fps = 5;
   vSettings_.format = RGB;
-  vSettings_.resolution = 1; // 640x480
+  vSettings_.resolution = 1; // 320x240
   vSettings_.reserved = 0;
   
   this->setProcessParameters();

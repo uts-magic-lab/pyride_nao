@@ -231,7 +231,7 @@ void NaoProxyManager::updateHeadPos( const float yaw, const float pitch )
     newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
 
     try {
-      motionProxy_->setAngles( names, newHeadPos, 0.8 );
+      motionProxy_->setAngles( names, newHeadPos, 0.1 );
     }
     catch (...) {
       ERROR_MSG( "Unable to change angles to %s", newHeadPos.toString().c_str() );
