@@ -372,7 +372,15 @@ void NaoProxyManager::setArmStiffness( bool isLeft, const float stiff )
     motionProxy_->setStiffnesses( names, stiff );
   }
 }
-  
+
+void NaoProxyManager::setLegStiffness( bool isLeft, const float stiff )
+{
+  if (motionProxy_ && stiff >= 0.0 && stiff <= 1.0) {
+    AL::ALValue names = isLeft ? "LLeg" : "RLeg";
+    motionProxy_->setStiffnesses( names, stiff );
+  }
+}
+
 bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<float> & positions, float frac_speed )
 {
   if (!motionProxy_)

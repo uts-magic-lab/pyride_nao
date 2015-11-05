@@ -360,12 +360,12 @@ static PyObject * PyModule_NaoSetArmStiffness( PyObject * self, PyObject * args 
 {
   PyObject * isYesObj = NULL;
   float stiff = 0.0;
-  
+
   if (!PyArg_ParseTuple( args, "Of", &isYesObj, &stiff )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (!PyBool_Check( isYesObj )) {
     PyErr_Format( PyExc_ValueError, "PyNAO.setArmStiffness: the first parameter must be a boolean!" );
     return NULL;
@@ -374,8 +374,38 @@ static PyObject * PyModule_NaoSetArmStiffness( PyObject * self, PyObject * args 
     PyErr_Format( PyExc_ValueError, "PyNAO.setArmStiffness: the stiffness input must be within the range of [0.0, 1.0]!" );
     return NULL;
   }
-  
+
   NaoProxyManager::instance()->setArmStiffness( PyObject_IsTrue( isYesObj ), stiff );
+  Py_RETURN_NONE;
+}
+
+/*! \fn setLegStiffness(left_leg,stiffness)
+ *  \memberof PyNAO
+ *  \brief Set the stiffness of a NAO' leg.
+ *  \param bool left_leg. True for left leg; False for right leg.
+ *  \param float stiffness. Must be between [0.0,1.0].
+ *  \return None.
+ */
+static PyObject * PyModule_NaoSetLegStiffness( PyObject * self, PyObject * args )
+{
+  PyObject * isYesObj = NULL;
+  float stiff = 0.0;
+  
+  if (!PyArg_ParseTuple( args, "Of", &isYesObj, &stiff )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+  
+  if (!PyBool_Check( isYesObj )) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.setLegStiffness: the first parameter must be a boolean!" );
+    return NULL;
+  }
+  if (stiff < 0.0 || stiff > 1.0) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.setLegStiffness: the stiffness input must be within the range of [0.0, 1.0]!" );
+    return NULL;
+  }
+  
+  NaoProxyManager::instance()->setLegStiffness( PyObject_IsTrue( isYesObj ), stiff );
   Py_RETURN_NONE;
 }
 
@@ -1067,6 +1097,8 @@ static PyMethodDef PyModule_methods[] = {
     "Get NAO to lying down either belly down or up. (set optional input to True). " },
   { "setArmStiffness", (PyCFunction)PyModule_NaoSetArmStiffness, METH_VARARGS,
     "Set the stiffness of the one of NAO's arms. " },
+  { "setLegStiffness", (PyCFunction)PyModule_NaoSetLegStiffness, METH_VARARGS,
+     "Set the stiffness of the one of NAO's legs. " },
   { "moveArmWithJointPos", (PyCFunction)PyModule_NaoMoveArmWithJointPos, METH_VARARGS|METH_KEYWORDS,
     "Move one of NAO arms with specific joint positions." },
   { "moveArmWithJointTrajectory", (PyCFunction)PyModule_NaoMoveArmWithJointTraj, METH_VARARGS,
