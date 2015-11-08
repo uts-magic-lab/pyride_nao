@@ -89,8 +89,7 @@ public:
 
   bool getHeadPos( float & yaw, float & pitch );
   void moveHeadTo( const float yaw, const float pitch, bool absolute = false );
-  void updateHeadPos( const float yaw, const float pitch );
-  void setHeadStiffness( const float stiff );
+  void updateHeadPos( const float yaw, const float pitch, const float speed = 0.1 );
 
   void getBodyJointsPos( std::vector<float> & positions,
                         bool useSensor = false );
@@ -100,7 +99,8 @@ public:
                        bool useSensor = false );
   
   void setArmStiffness( bool isLeft, const float stiff );
-
+  void setHeadStiffness( const float stiff );
+  void setBodyStiffness( const float stiff );
   void setLegStiffness( bool isLeft, const float stiff );
 
   bool moveArmWithJointPos( bool isLeft, const std::vector<float> & positions,

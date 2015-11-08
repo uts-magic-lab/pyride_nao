@@ -213,7 +213,7 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absol
   }
 }
 
-void NaoProxyManager::updateHeadPos( const float yaw, const float pitch )
+void NaoProxyManager::updateHeadPos( const float yaw, const float pitch, const float speed )
 {
   if (motionProxy_) {
     AL::ALValue names = "Head";
@@ -230,8 +230,9 @@ void NaoProxyManager::updateHeadPos( const float yaw, const float pitch )
     newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
     newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
 
+    float myspeed = (speed > 1.0 || speed < 0.0 ) ? 0.1 : speed; // default to 0.1
     try {
-      motionProxy_->setAngles( names, newHeadPos, 0.1 );
+      motionProxy_->setAngles( names, newHeadPos, myspeed );
     }
     catch (...) {
       ERROR_MSG( "Unable to change angles to %s", newHeadPos.toString().c_str() );
@@ -243,6 +244,14 @@ void NaoProxyManager::setHeadStiffness( const float stiff )
 {
   if (motionProxy_ && stiff >= 0.0 && stiff <= 1.0) {
     AL::ALValue names = "Head";
+    motionProxy_->setStiffnesses( names, stiff );
+  }
+}
+
+void NaoProxyManager::setBodyStiffness( const float stiff )
+{
+  if (motionProxy_ && stiff >= 0.0 && stiff <= 1.0) {
+    AL::ALValue names = "Body";
     motionProxy_->setStiffnesses( names, stiff );
   }
 }

@@ -1,6 +1,6 @@
 /*
  *  PyNAOModule.cpp
- *  
+ *
  */
 
 #include <pthread.h>
@@ -94,9 +94,9 @@ static PyObject * PyModule_write( PyObject *self, PyObject * args )
       outputMsg += *msg;
     msg++;
   }
-  
+
   PyNAOModule::instance()->write( outputMsg.c_str() );
-  
+
   Py_RETURN_NONE;
 }
 
@@ -110,7 +110,7 @@ static PyObject * PyModule_SetTeamMemberID( PyObject *self, PyObject * args )
   if (teamID < 0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.setTeamMemberID: invalid "
                  "team member ID %d!", teamID );
-    
+
     return NULL;
   }
   if (teamColour < BlueTeam || teamColour > PinkTeam) {
@@ -129,12 +129,12 @@ static PyObject * PyModule_SetTeamMemberID( PyObject *self, PyObject * args )
 static PyObject * PyModule_sendTeamMessage( PyObject *self, PyObject * args )
 {
   char * dataStr = NULL;
-  
+
   if (!PyArg_ParseTuple( args, "s", &dataStr )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   PyNAOModule::instance()->sendTeamMessage( dataStr );
   Py_RETURN_NONE;
 }
@@ -144,7 +144,7 @@ static PyObject * PyModule_NaoSayWithVolume( PyObject * self, PyObject * args )
   float volume = 0.0;
   char * dataStr = NULL;
   PyObject * toBlockObj = NULL;
-  
+
   if (!PyArg_ParseTuple( args, "s|fO", &dataStr, &volume, &toBlockObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -201,13 +201,14 @@ static PyObject * PyModule_NaoUpdateHeadPos( PyObject * self, PyObject * args )
 {
   double yaw = 0.0;
   double pitch = 0.0;
+  double speed = 0.1;
 
-  if (!PyArg_ParseTuple( args, "dd", &yaw, &pitch )) {
+  if (!PyArg_ParseTuple( args, "dd|f", &yaw, &pitch, &speed )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
 
-  NaoProxyManager::instance()->updateHeadPos( yaw, pitch );
+  NaoProxyManager::instance()->updateHeadPos( yaw, pitch, speed );
   Py_RETURN_NONE;
 }
 
@@ -249,7 +250,7 @@ static PyObject * PyModule_NaoStand( PyObject * self, PyObject * args )
 {
   PyObject * isYesObj = NULL;
   bool isYes = false;
-  
+
   if (!PyArg_ParseTuple( args, "|O", &isYesObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -277,7 +278,7 @@ static PyObject * PyModule_NaoLyingDown( PyObject * self, PyObject * args )
 {
   PyObject * isYesObj = NULL;
   bool isYes = false;
-  
+
   if (!PyArg_ParseTuple( args, "|O", &isYesObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -324,7 +325,7 @@ static PyObject * PyModule_NaoGetHeadPos( PyObject * self )
     return NULL;
   }
 }
-  
+
 /*! \fn setHeadStiffness(stiffness)
  *  \memberof PyNAO
  *  \brief Set the stiffness of the NAO head.
@@ -334,18 +335,42 @@ static PyObject * PyModule_NaoGetHeadPos( PyObject * self )
 static PyObject * PyModule_NaoSetHeadStiffness( PyObject * self, PyObject * args )
 {
   float stiff = 0.0;
-  
+
   if (!PyArg_ParseTuple( args, "f", &stiff )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (stiff < 0.0 || stiff > 1.0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.setHeadStiffness: the stiffness input must be within the range of [0.0, 1.0]!" );
     return NULL;
   }
-  
+
   NaoProxyManager::instance()->setHeadStiffness( stiff );
+  Py_RETURN_NONE;
+}
+
+/*! \fn setBodyStiffness(stiffness)
+ *  \memberof PyNAO
+ *  \brief Set the stiffness of the NAO body.
+ *  \param float stiffness. Must be between [0.0,1.0].
+ *  \return None.
+ */
+static PyObject * PyModule_NaoSetBodyStiffness( PyObject * self, PyObject * args )
+{
+  float stiff = 0.0;
+
+  if (!PyArg_ParseTuple( args, "f", &stiff )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  if (stiff < 0.0 || stiff > 1.0) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.setBodyStiffness: the stiffness input must be within the range of [0.0, 1.0]!" );
+    return NULL;
+  }
+
+  NaoProxyManager::instance()->setBodyStiffness( stiff );
   Py_RETURN_NONE;
 }
 
@@ -390,12 +415,12 @@ static PyObject * PyModule_NaoSetLegStiffness( PyObject * self, PyObject * args 
 {
   PyObject * isYesObj = NULL;
   float stiff = 0.0;
-  
+
   if (!PyArg_ParseTuple( args, "Of", &isYesObj, &stiff )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (!PyBool_Check( isYesObj )) {
     PyErr_Format( PyExc_ValueError, "PyNAO.setLegStiffness: the first parameter must be a boolean!" );
     return NULL;
@@ -404,7 +429,7 @@ static PyObject * PyModule_NaoSetLegStiffness( PyObject * self, PyObject * args 
     PyErr_Format( PyExc_ValueError, "PyNAO.setLegStiffness: the stiffness input must be within the range of [0.0, 1.0]!" );
     return NULL;
   }
-  
+
   NaoProxyManager::instance()->setLegStiffness( PyObject_IsTrue( isYesObj ), stiff );
   Py_RETURN_NONE;
 }
@@ -426,14 +451,14 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   int listSize = 0;
-  
+
   if (!PyList_Check( trajObj ) || (listSize = PyList_Size( trajObj )) == 0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointTrajectory: input parameter must be a non empty list of dictionary!" );
     return NULL;
   }
-  
+
   if (isYesObj) {
     if (PyBool_Check( isYesObj )) {
       inpost = PyObject_IsTrue( isYesObj );
@@ -443,14 +468,14 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
       return NULL;
     }
   }
-  
+
   PyObject * jointPos = NULL;
   PyObject * jval = NULL;
   int armsel = 0; // 1 for left and 2 for right
-  
+
   std::vector< std::vector<float> > trajectory;
   std::vector<float> times_to_reach( listSize, 2.0 ); // default to 2 seconds;
-  
+
   for (int i = 0; i < listSize; ++i) {
     jointPos = PyList_GetItem( trajObj, i );
     if (!PyDict_Check( jointPos ) || PyDict_Size( jointPos ) < 4) {
@@ -477,9 +502,9 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
         return NULL;
       }
     }
-    
+
     std::vector<float> arm_joint_pos( 4, 0.0 );
-    
+
     for (int k = 0; k < 4; k++) {
       jval = PyDict_GetItemString( jointPos, (armsel == 1 ? kLeftArmKWlist[k] : kRightArmKWlist[k]) );
       if (!jval) {
@@ -502,7 +527,7 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
       times_to_reach[i] = (float)PyFloat_AsDouble( jval );
     }
   }
-  
+
   NaoProxyManager::instance()->moveArmWithJointTrajectory( (armsel == 1), trajectory,
                                                           times_to_reach, inpost );
   Py_RETURN_NONE;
@@ -520,9 +545,9 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
 {
   float s_p_j, s_r_j, e_y_j, e_r_j;
   float frac_max_speed = 0.5;
-  
+
   bool isLeftArm = false;
-  
+
   if (PyArg_ParseTupleAndKeywords( args, keywds, "ffff|f", (char**)kLeftArmKWlist,
                                   &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed ))
   {
@@ -537,12 +562,12 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
       return NULL;
     }
   }
-  
+
   if (frac_max_speed > 1.0 || frac_max_speed < 0.0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointPos: fraction of max speed must be a value within [0.0, 1.0]!" );
     return NULL;
   }
-  
+
   std::vector<float> positions( 4, 0.0 );
   positions[0] = s_p_j;
   positions[1] = s_r_j;
@@ -565,9 +590,9 @@ static PyObject * PyModule_NaoMoveLegWithJointPos( PyObject * self, PyObject * a
 {
   float h_y_p_j, h_r_j, h_p_j, k_p_j, a_p_j, a_r_j;
   float frac_max_speed = 0.5;
-  
+
   bool isLeftLeg = false;
-  
+
   if (PyArg_ParseTupleAndKeywords( args, keywds, "ffffff|f", (char**)kLeftLegKWlist,
                                   &h_y_p_j, &h_r_j, &h_p_j, &k_p_j, &a_p_j, &a_r_j,
                                   &frac_max_speed ))
@@ -584,12 +609,12 @@ static PyObject * PyModule_NaoMoveLegWithJointPos( PyObject * self, PyObject * a
       return NULL;
     }
   }
-  
+
   if (frac_max_speed > 1.0 || frac_max_speed < 0.0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.moveLegWithJointPos: fraction of max speed must be a value within [0.0, 1.0]!" );
     return NULL;
   }
-  
+
   std::vector<float> positions( 6, 0.0 );
   positions[0] = h_y_p_j;
   positions[1] = h_r_j;
@@ -597,7 +622,7 @@ static PyObject * PyModule_NaoMoveLegWithJointPos( PyObject * self, PyObject * a
   positions[3] = k_p_j;
   positions[4] = a_p_j;
   positions[5] = a_r_j;
-  
+
   NaoProxyManager::instance()->moveLegWithJointPos( isLeftLeg, positions, frac_max_speed );
   Py_RETURN_NONE;
 }
@@ -619,7 +644,7 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
   float h_y_j, h_p_j;
 
   float frac_max_speed = 0.5;
-  
+
   if (!PyArg_ParseTupleAndKeywords( args, keywds, "ffffffffffffffffffffff|f",
                                    (char**)kBodyKWlist, &h_y_j, &h_p_j,
                                    &l_s_p_j, &l_s_r_j, &l_e_y_j, &l_e_r_j,
@@ -631,16 +656,16 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (frac_max_speed > 1.0 || frac_max_speed < 0.0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithJointPos: fraction of max speed must be a value within [0.0, 1.0]!" );
     return NULL;
   }
-  
+
   std::vector<float> positions( 22, 0.0 );
   positions[0] = h_y_j;
   positions[1] = h_p_j;
-  
+
   positions[2] = l_s_p_j;
   positions[3] = l_s_r_j;
   positions[4] = l_e_y_j;
@@ -659,7 +684,7 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
   positions[15] = r_k_p_j;
   positions[16] = r_a_p_j;
   positions[17] = r_a_r_j;
-  
+
   positions[18] = r_s_p_j;
   positions[19] = r_s_r_j;
   positions[20] = r_e_y_j;
@@ -682,12 +707,12 @@ static PyObject * PyModule_NaoGetArmJointPositions( PyObject * self, PyObject * 
   PyObject * usbObj = NULL;
 
   bool useSensor = false;
-  
+
   if (!PyArg_ParseTuple( args, "O|O", &armsel, &usbObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (!PyBool_Check( armsel )) {
     PyErr_Format( PyExc_ValueError, "PyNAO.getArmJointPositions: first input parameter must be a boolean!" );
     return NULL;
@@ -728,21 +753,21 @@ static PyObject * PyModule_NaoGetLegJointPositions( PyObject * self, PyObject * 
 {
   PyObject * legsel = NULL;
   PyObject * usbObj = NULL;
-  
+
   bool useSensor = false;
-  
+
   if (!PyArg_ParseTuple( args, "O|O", &legsel, &usbObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (!PyBool_Check( legsel )) {
     PyErr_Format( PyExc_ValueError, "PyNAO.getLegJointPositions: first input parameter must be a boolean!" );
     return NULL;
   }
-  
+
   bool isLeftLeg = PyObject_IsTrue( legsel );
-  
+
   if (usbObj) {
     if (PyBool_Check( usbObj )) {
       useSensor = PyObject_IsTrue( usbObj );
@@ -752,9 +777,9 @@ static PyObject * PyModule_NaoGetLegJointPositions( PyObject * self, PyObject * 
       return NULL;
     }
   }
-  
+
   std::vector<float> positions( 6, 0.0 );
-  
+
   NaoProxyManager::instance()->getLegJointsPos( isLeftLeg, positions, useSensor );
   PyObject * retObj = PyDict_New();
   for (int i = 0; i < 6; i++) {
@@ -775,14 +800,14 @@ static PyObject * PyModule_NaoGetLegJointPositions( PyObject * self, PyObject * 
 static PyObject * PyModule_NaoGetBodyJointPositions( PyObject * self, PyObject * args )
 {
   PyObject * usbObj = NULL;
-  
+
   bool useSensor = false;
-  
+
   if (!PyArg_ParseTuple( args, "|O", &usbObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (usbObj) {
     if (PyBool_Check( usbObj )) {
       useSensor = PyObject_IsTrue( usbObj );
@@ -792,9 +817,9 @@ static PyObject * PyModule_NaoGetBodyJointPositions( PyObject * self, PyObject *
       return NULL;
     }
   }
-  
+
   std::vector<float> positions( 22, 0.0 );
-  
+
   NaoProxyManager::instance()->getBodyJointsPos( positions, useSensor );
   PyObject * retObj = PyDict_New();
   for (int i = 0; i < 4; i++) {
@@ -819,7 +844,7 @@ static PyObject * PyModule_NaoLoadAudioFile( PyObject * self, PyObject * args )
 {
   char * text = NULL;
   int audioID = -1;
-  
+
   if (!PyArg_ParseTuple( args, "s", &text )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -843,7 +868,7 @@ static PyObject * PyModule_NaoLoadAudioFile( PyObject * self, PyObject * args )
 static PyObject * PyModule_NaoUnloadAudioFile( PyObject * self, PyObject * args )
 {
   int audioID = 0;
-  
+
   if (!PyArg_ParseTuple( args, "i", &audioID )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -868,7 +893,7 @@ static PyObject * PyModule_NaoUnloadAllAudioFiles( PyObject * self )
 static PyObject * PyModule_NaoPlayWebAudio( PyObject * self, PyObject * args )
 {
   char * text = NULL;
-  
+
   if (!PyArg_ParseTuple( args, "s", &text )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -903,7 +928,7 @@ static PyObject * PyModule_NaoPlayAudioID( PyObject * self, PyObject * args )
   }
   Py_RETURN_NONE;
 }
-  
+
 /*! \fn getAudioVolume()
  *  \memberof PyNAO
  *  \brief Get the current master audio volume.
@@ -924,7 +949,7 @@ static PyObject * PyModule_NaoGetAudioVolume( PyObject * self )
 static PyObject * PyModule_NaoSetAudioVolume( PyObject * self, PyObject * args )
 {
   int volume = 50;
-  
+
   if (!PyArg_ParseTuple( args, "i", &volume )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -933,7 +958,7 @@ static PyObject * PyModule_NaoSetAudioVolume( PyObject * self, PyObject * args )
     PyErr_Format( PyExc_ValueError, "PyNAO.setAudioVolume: invalid audio volume, must be within [0..100]!" );
     return NULL;
   }
-  
+
   NaoProxyManager::instance()->setAudioVolume( volume );
   Py_RETURN_NONE;
 }
@@ -947,7 +972,7 @@ static PyObject * PyModule_NaoSetAudioVolume( PyObject * self, PyObject * args )
 static PyObject * PyModule_NaoPauseAudioID( PyObject * self, PyObject * args )
 {
   int audioID = 0;
-  
+
   if (!PyArg_ParseTuple( args, "i", &audioID )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -984,7 +1009,7 @@ static PyObject * PyModule_NaoSSetChestLED( PyObject * self, PyObject * args )
 {
   char * colourStr = NULL;
   NAOLedColour colourID;
-  
+
   if (!PyArg_ParseTuple( args, "s", &colourStr )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -1017,7 +1042,7 @@ static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
   float period = 0.5;
 
   NAOLedColour colourID1, colourID2;
-  
+
   if (!PyArg_ParseTuple( args, "ss|f", &colourStr1, &colourStr2, &period )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -1027,12 +1052,12 @@ static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
                  "Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'." );
     return NULL;
   }
-  
+
   if (period <= 0.0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.pluseChestLED: invalid pluse period." );
     return NULL;
   }
-  
+
   NaoProxyManager::instance()->pulsatingChestLED( colourID1, colourID2, period );
   Py_RETURN_NONE;
 }
@@ -1059,7 +1084,7 @@ static PyObject * PyModule_NaoGetBatteryStatus( PyObject * self )
   else if (isdischarging) {
     return Py_BuildValue( "(iss)", batpercent, isplugged ? "plugged in" :
                          "unplugged", "discharging" );
-    
+
   }
   else {
     return Py_BuildValue( "(iss)", batpercent, isplugged ? "plugged in" :
@@ -1087,6 +1112,8 @@ static PyMethodDef PyModule_methods[] = {
     "Get NAO's head position." },
   { "setHeadStiffness", (PyCFunction)PyModule_NaoSetHeadStiffness, METH_VARARGS,
     "Set the stiffness of the NAO's head. " },
+  { "setBodyStiffness", (PyCFunction)PyModule_NaoSetBodyStiffness, METH_VARARGS,
+    "Set the stiffness of the NAO's body. " },
   { "sit", (PyCFunction)PyModule_NaoSit, METH_VARARGS,
     "Get NAO to sit in standard or relax mode (set optional input to True). " },
   { "stand", (PyCFunction)PyModule_NaoStand, METH_VARARGS,
@@ -1157,7 +1184,7 @@ PyNAOModule * PyNAOModule::instance()
 {
   if (!s_pyNAOModule)
     s_pyNAOModule = new PyNAOModule();
-  
+
   return s_pyNAOModule;
 }
 } // namespace pyride
