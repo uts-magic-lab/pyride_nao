@@ -649,8 +649,10 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = mainpage.dox \
-                         PyNaoServer/PyModulePyCommon.cpp libsrc/PyRideCore/PyModuleStub.cpp \
-                         PyNaoServer/PyNAOModule.cpp PyNaoServer/NaoProxyManager.cpp 
+                         libsrc/pyridecore/PyModulePyCommon.cpp \
+                         libsrc/pyridecore/PyModuleStub.cpp \
+                         PyNaoServer/PyNAOModule.cpp \
+                         PyNaoServer/NaoProxyManager.cpp 
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -741,7 +743,7 @@ IMAGE_PATH             =
 # If FILTER_PATTERNS is specified, this tag will be
 # ignored.
 
-INPUT_FILTER           =
+INPUT_FILTER           = "sed 's/ROBOT_MODEL_DOXYGEN/PyNAO/g'"
 
 # The FILTER_PATTERNS tag can be used to specify filters on a per file pattern
 # basis.
