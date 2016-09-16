@@ -15,8 +15,6 @@
 #include <alcommon/alproxy.h>
 #include <alcommon/albroker.h>
 
-
-#include <alproxies/alsentinelproxy.h>
 #include <alproxies/alaudiodeviceproxy.h>
 #include <alvision/alvisiondefinitions.h>
 #include <althread/alcriticalsection.h>
@@ -332,15 +330,6 @@ void PyNaoServer::init()
     memoryProxy_.reset();
   }
   
-  // disable default single chest button press
-  try {
-    boost::shared_ptr<ALSentinelProxy> sentinelProxy = boost::shared_ptr<ALSentinelProxy>(new ALSentinelProxy( getParentBroker() ));
-    sentinelProxy->enableDefaultActionSimpleClick( false );
-    sentinelProxy->enableDefaultActionDoubleClick( false );
-    sentinelProxy->enableDefaultActionTripleClick( false );
-  }
-  catch (const ALError& e) {}
-
   NaoProxyManager::instance()->initWithBroker( getParentBroker(), memoryProxy_ );
   ServerDataProcessor::instance()->init( naoCams_, naoAudio_ );
   ServerDataProcessor::instance()->addCommandHandler( this );
@@ -356,9 +345,9 @@ void PyNaoServer::init()
     /* subscribe to sensor events */
     memoryProxy_->subscribeToEvent( "RightBumperPressed", "PyNaoServer", "onRightBumperPressed" );
     memoryProxy_->subscribeToEvent( "LeftBumperPressed", "PyNaoServer", "onLeftBumperPressed" );
-    memoryProxy_->subscribeToEvent( "ALSentinel/SimpleClickOccured", "PyNaoServer", "onSingleChestButtonPressed" );
-    memoryProxy_->subscribeToEvent( "ALSentinel/DoubleClickOccured", "PyNaoServer", "onDoubleChestButtonPressed" );
-    memoryProxy_->subscribeToEvent( "ALSentinel/TripleClickOccured", "PyNaoServer", "onTripleChestButtonPressed" );
+    memoryProxy_->subscribeToEvent( "ALChestButton/SimpleClickOccurred", "PyNaoServer", "onSingleChestButtonPressed" );
+    memoryProxy_->subscribeToEvent( "ALChestButton/DoubleClickOccurred", "PyNaoServer", "onDoubleChestButtonPressed" );
+    memoryProxy_->subscribeToEvent( "ALChestButton/TripleClickOccurred", "PyNaoServer", "onTripleChestButtonPressed" );
     memoryProxy_->subscribeToEvent( "BatteryPowerPluggedChanged", "PyNaoServer", "onBatteryPowerPlugged" );
     memoryProxy_->subscribeToEvent( "BatteryChargeChanged", "PyNaoServer", "onBatteryChargeChanged" );
   }
