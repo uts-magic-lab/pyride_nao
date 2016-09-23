@@ -79,8 +79,8 @@ bool NaoCam::initDevice()
   std::string GVMName = "Controller_GVM";
   
   try {
-    gvmName_ = videoProxy_->subscribeCamera( GVMName, AL::kTopCamera, AL::kQVGA, kYUV422InterlacedColorSpace,
-                                      /* kRGBColorSpace,*/ 5 );
+    gvmName_ = videoProxy_->subscribeCamera( GVMName, AL::kTopCamera, AL::kVGA, kYUV422InterlacedColorSpace,
+                                      /*kRGBColorSpace,*/ 10 );
   }
   catch (const ALError& e) {
     ERROR_MSG( "PyNaoServer: Could not register GVM to ALVideoDevice.\n" );
@@ -184,9 +184,9 @@ void NaoCam::takeSnapshot( const VideoDeviceDataHandler * dataHandler )
   
 bool NaoCam::getDefaultVideoSettings()
 {
-  vSettings_.fps = 5;
+  vSettings_.fps = 15;
   vSettings_.format = RGB;
-  vSettings_.resolution = 1; // 320x240
+  vSettings_.resolution = 2; // 640x480
   vSettings_.reserved = 0;
   
   this->setProcessParameters();
