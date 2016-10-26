@@ -14,6 +14,35 @@ namespace pyride {
 
 static const long kMotionCommandGapTolerance = 2 * 1000000 / kMotionCommandFreq;
 
+static const char *kNAOBodyJoints[] = {
+    "HeadYaw",
+    "HeadPitch",
+    "LShoulderPitch",
+    "LShoulderRoll",
+    "LElbowYaw",
+    "LElbowRoll",
+    "LWristYaw",
+    "LHipYawPitch",
+    "LHipRoll",
+    "LHipPitch",
+    "LKneePitch",
+    "LAnklePitch",
+    "LAnkleRoll",
+    "RHipYawPitch",
+    "RHipRoll",
+    "RHipPitch",
+    "RKneePitch",
+    "RAnklePitch",
+    "RAnkleRoll",
+    "RShoulderPitch",
+    "RShoulderRoll",
+    "RElbowYaw",
+    "RElbowRoll",
+    "RWristYaw"
+};
+
+static const int kNAOJointNo = sizeof( kNAOBodyJoints ) / sizeof( kNAOBodyJoints[0] );
+
 NaoProxyManager * NaoProxyManager::s_pNaoProxyManager = NULL;
 
 void * pulse_thread( void * controller )
@@ -111,29 +140,33 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
   if (motionProxy_) {
     moveInitialised_ = false;
     AL::ALValue joints; // make sure we get joint limits in correct order
-    jointLimits_.arraySetSize( 22 );
+    jointLimits_.arraySetSize( 26 );
     jointLimits_[0] = motionProxy_->getLimits( "HeadYaw" )[0];
     jointLimits_[1] = motionProxy_->getLimits( "HeadPitch" )[0];
     jointLimits_[2] = motionProxy_->getLimits( "LShoulderPitch" )[0];
     jointLimits_[3] = motionProxy_->getLimits( "LShoulderRoll" )[0];
     jointLimits_[4] = motionProxy_->getLimits( "LElbowYaw" )[0];
     jointLimits_[5] = motionProxy_->getLimits( "LElbowRoll" )[0];
-    jointLimits_[6] = motionProxy_->getLimits( "LHipYawPitch" )[0];
-    jointLimits_[7] = motionProxy_->getLimits( "LHipRoll" )[0];
-    jointLimits_[8] = motionProxy_->getLimits( "LHipPitch" )[0];
-    jointLimits_[9] = motionProxy_->getLimits( "LKneePitch" )[0];
-    jointLimits_[10] = motionProxy_->getLimits( "LAnklePitch" )[0];
-    jointLimits_[11] = motionProxy_->getLimits( "LAnkleRoll" )[0];
-    jointLimits_[12] = motionProxy_->getLimits( "RHipYawPitch" )[0];
-    jointLimits_[13] = motionProxy_->getLimits( "RHipRoll" )[0];
-    jointLimits_[14] = motionProxy_->getLimits( "RHipPitch" )[0];
-    jointLimits_[15] = motionProxy_->getLimits( "RKneePitch" )[0];
-    jointLimits_[16] = motionProxy_->getLimits( "RAnklePitch" )[0];
-    jointLimits_[17] = motionProxy_->getLimits( "RAnkleRoll" )[0];
-    jointLimits_[18] = motionProxy_->getLimits( "RShoulderPitch" )[0];
-    jointLimits_[19] = motionProxy_->getLimits( "RShoulderRoll" )[0];
-    jointLimits_[20] = motionProxy_->getLimits( "RElbowYaw" )[0];
-    jointLimits_[21] = motionProxy_->getLimits( "RElbowRoll" )[0];
+    jointLimits_[6] = motionProxy_->getLimits( "LWristYaw" )[0];
+    jointLimits_[7] = motionProxy_->getLimits( "LHipYawPitch" )[0];
+    jointLimits_[8] = motionProxy_->getLimits( "LHipRoll" )[0];
+    jointLimits_[9] = motionProxy_->getLimits( "LHipPitch" )[0];
+    jointLimits_[10] = motionProxy_->getLimits( "LKneePitch" )[0];
+    jointLimits_[11] = motionProxy_->getLimits( "LAnklePitch" )[0];
+    jointLimits_[12] = motionProxy_->getLimits( "LAnkleRoll" )[0];
+    jointLimits_[13] = motionProxy_->getLimits( "RHipYawPitch" )[0];
+    jointLimits_[14] = motionProxy_->getLimits( "RHipRoll" )[0];
+    jointLimits_[15] = motionProxy_->getLimits( "RHipPitch" )[0];
+    jointLimits_[16] = motionProxy_->getLimits( "RKneePitch" )[0];
+    jointLimits_[17] = motionProxy_->getLimits( "RAnklePitch" )[0];
+    jointLimits_[18] = motionProxy_->getLimits( "RAnkleRoll" )[0];
+    jointLimits_[19] = motionProxy_->getLimits( "RShoulderPitch" )[0];
+    jointLimits_[20] = motionProxy_->getLimits( "RShoulderRoll" )[0];
+    jointLimits_[21] = motionProxy_->getLimits( "RElbowYaw" )[0];
+    jointLimits_[22] = motionProxy_->getLimits( "RElbowRoll" )[0];
+    jointLimits_[23] = motionProxy_->getLimits( "RWristYaw" )[0];
+    jointLimits_[24] = motionProxy_->getLimits( "LHand" )[0];
+    jointLimits_[25] = motionProxy_->getLimits( "RHand" )[0];
 
     INFO_MSG( "Nao Motion is successfully initialised.\n" );
   }
@@ -291,7 +324,7 @@ void NaoProxyManager::lyingDown( bool bellyUp )
   }
 }
 
-bool NaoProxyManager::moveBodyTo( const RobotPose & pose, bool cancelPreviousMove )
+bool NaoProxyManager::moveBodyTo( const RobotPose & pose, bool cancelPreviousMove, bool inpost )
 {
   if (!motionProxy_) {
     ERROR_MSG( "Unable to initialise walk." );
@@ -311,7 +344,10 @@ bool NaoProxyManager::moveBodyTo( const RobotPose & pose, bool cancelPreviousMov
     motionProxy_->moveInit();
     moveInitialised_ = true;
   }
-  motionProxy_->post.moveTo( pose.x, pose.y, pose.theta );
+  if (inpost)
+    motionProxy_->post.moveTo( pose.x, pose.y, pose.theta );
+  else
+    motionProxy_->moveTo( pose.x, pose.y, pose.theta );
   return true;
 }
 
@@ -349,7 +385,15 @@ void NaoProxyManager::getBodyJointsPos( std::vector<float> & positions,
 {
   positions.clear();
   if (motionProxy_) {
-    AL::ALValue names = "Body";
+    //AL::ALValue names = "Body";
+
+    // skip hands
+    AL::ALValue names;
+    names.arraySetSize( kNAOJointNo );
+    for (int i = 0; i < kNAOJointNo; i++) {
+      names[i] = kNAOBodyJoints[i];
+    }
+
     positions = motionProxy_->getAngles( names, useSensor );
   }
 }
@@ -390,13 +434,14 @@ void NaoProxyManager::setLegStiffness( bool isLeft, const float stiff )
   }
 }
 
-bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<float> & positions, float frac_speed )
+bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<float> & positions,
+                                           float frac_speed, bool inpost )
 {
   if (!motionProxy_)
     return false;
   
   int pos_size = positions.size();
-  if (pos_size != 4) {
+  if (pos_size != 5) {
     return false;
   }
   
@@ -404,11 +449,13 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
   AL::ALValue names = isLeftArm ? AL::ALValue::array( "LShoulderPitch",
                                                       "LShoulderRoll",
                                                       "LElbowYaw",
-                                                      "LElbowRoll" ) :
+                                                      "LElbowRoll",
+                                                      "LWristYaw" ) :
                                   AL::ALValue::array( "RShoulderPitch",
                                                       "RShoulderRoll",
                                                       "RElbowYaw",
-                                                      "RElbowRoll" );
+                                                      "RElbowRoll",
+                                                      "RWristYaw");
   
   AL::ALValue angles;
 
@@ -419,7 +466,10 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
     angles[i] = clamp( positions[i], (isLeftArm ? L_SHOULDER_PITCH + i : R_SHOULDER_PITCH + i) );
   }
   try {
-    motionProxy_->setAngles( names, angles, frac_speed );
+    if (inpost)
+      motionProxy_->setAngles( names, angles, frac_speed );
+    else
+      motionProxy_->angleInterpolationWithSpeed( names, angles, frac_speed );
   }
   catch (...) {
     ERROR_MSG( "Unable to set angle to %s", angles.toString().c_str() );
@@ -436,27 +486,29 @@ void NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< s
   
   size_t traj_size = trajectory.size();
   
-  if (traj_size <=0 || traj_size != times_to_reach.size())
+  if (traj_size <= 0 || traj_size != times_to_reach.size())
     return;
 
   //AL::ALValue names = isLeftArm ? "LArm" : "RArm";
   AL::ALValue names = isLeftArm ? AL::ALValue::array( "LShoulderPitch",
                                                       "LShoulderRoll",
                                                       "LElbowYaw",
-                                                      "LElbowRoll" ) :
+                                                      "LElbowRoll",
+                                                      "LWristYaw" ) :
                                   AL::ALValue::array( "RShoulderPitch",
                                                       "RShoulderRoll",
                                                       "RElbowYaw",
-                                                      "RElbowRoll" );
+                                                      "RElbowRoll",
+                                                      "RWristYaw" );
   AL::ALValue joints;
   AL::ALValue times;
 
   motionProxy_->setStiffnesses( names, 1.0 );
 
-  joints.arraySetSize( 4 );
-  times.arraySetSize( 4 );
+  joints.arraySetSize( 5 );
+  times.arraySetSize( 5 );
   
-  for (size_t j = 0; j < 4; ++j) {
+  for (size_t j = 0; j < 5; ++j) {
     AL::ALValue angles;
     AL::ALValue ttr;
     
@@ -520,10 +572,17 @@ bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions
     return false;
   
   int pos_size = positions.size();
-  if (pos_size != jointLimits_.getSize()) {
+  if (pos_size != kNAOJointNo) {
     return false;
   }
-  AL::ALValue names = "Body";
+  //AL::ALValue names = "Body";
+  AL::ALValue names;
+
+  names.arraySetSize( kNAOJointNo );
+  for (int i = 0; i < kNAOJointNo; i++) {
+    names[i] = kNAOBodyJoints[i];
+  }
+
   AL::ALValue angles;
 
   motionProxy_->setStiffnesses( names, 1.0 );
@@ -540,6 +599,44 @@ bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions
     return false;
   }
   return true;  
+}
+
+bool NaoProxyManager::setHandPosition( bool isLeft, float openRatio, bool keepStiff )
+{
+  float oratio = 1.0;
+  if (openRatio <= 1.0 && openRatio >= 0.0) {
+    oratio = openRatio;
+  }
+
+  AL::ALValue names;
+  AL::ALValue angles;
+
+  names.arraySetSize( 1 );
+  angles.arraySetSize( 1 );
+
+  if (isLeft) {
+    names[0] = "LHand";
+    angles[0] = oratio * ((float)jointLimits_[L_HAND][1] - (float)jointLimits_[L_HAND][0]);
+    motionProxy_->setStiffnesses( "LHand", 1.0 );
+  }
+  else {
+    names[0] = "RHand";
+    angles[0] = oratio * ((float)jointLimits_[R_HAND][1] - (float)jointLimits_[R_HAND][0]);
+    motionProxy_->setStiffnesses( "RHand", 1.0 );
+  }
+
+  try {
+    motionProxy_->angleInterpolationWithSpeed( names, angles, 0.8 );
+  }
+  catch (...) {
+    ERROR_MSG( "Unable to set angle to %s", angles.toString().c_str() );
+    return false;
+  }
+
+  if (!keepStiff) {
+    motionProxy_->setStiffnesses( (isLeft ? "LHand" : "RHand"), 0.0 );
+  }
+  return true;
 }
 
 int NaoProxyManager::loadAudioFile( const std::string & text )

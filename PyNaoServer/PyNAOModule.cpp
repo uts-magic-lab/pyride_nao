@@ -25,8 +25,10 @@ PyDoc_STRVAR( PyNAO_doc, \
 
 PyNAOModule * PyNAOModule::s_pyNAOModule = NULL;
 
-static const char *kLeftArmKWlist[] = { "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint", "l_elbow_roll_joint", "frac_max_speed", NULL };
-static const char *kRightArmKWlist[] = { "r_shoulder_pitch_joint", "r_shoulder_roll_joint", "r_elbow_yaw_joint", "r_elbow_roll_joint", "frac_max_speed", NULL };
+static const char *kLeftArmKWlist[] = { "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint", "l_elbow_roll_joint", "l_wrist_yaw_joint",
+    "frac_max_speed", "is_blocking", NULL };
+static const char *kRightArmKWlist[] = { "r_shoulder_pitch_joint", "r_shoulder_roll_joint", "r_elbow_yaw_joint", "r_elbow_roll_joint", "r_wrist_yaw_joint",
+    "frac_max_speed", "is_blocking", NULL };
 
 static const char *kLeftLegKWlist[] = { "l_hip_yaw_pitch_joint", "l_hip_roll_joint", "l_hip_pitch_joint", "l_knee_pitch_joint", "l_ankle_pitch_joint",
     "l_ankle_roll_joint", "frac_max_speed", NULL };
@@ -35,12 +37,13 @@ static const char *kRightLegKWlist[] = { "r_hip_yaw_pitch_joint", "r_hip_roll_jo
 
 static const char *kBodyKWlist[] = { "head_yaw_joint", "head_pitch_joint",
   "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint",
-  "l_elbow_roll_joint", "l_hip_yaw_pitch_joint", "l_hip_roll_joint", "l_hip_pitch_joint",
-  "l_knee_pitch_joint", "l_ankle_pitch_joint", "l_ankle_roll_joint"
-  "r_hip_yaw_pitch_joint", "r_hip_roll_joint", "r_hip_pitch_joint", "r_knee_pitch_joint",
+  "l_elbow_roll_joint", "l_wrist_yaw_joint", "l_hip_yaw_pitch_joint",
+  "l_hip_roll_joint", "l_hip_pitch_joint", "l_knee_pitch_joint",
+  "l_ankle_pitch_joint", "l_ankle_roll_joint" "r_hip_yaw_pitch_joint",
+  "r_hip_roll_joint", "r_hip_pitch_joint", "r_knee_pitch_joint",
   "r_ankle_pitch_joint", "r_ankle_roll_joint", "r_shoulder_pitch_joint",
   "r_shoulder_roll_joint", "r_elbow_yaw_joint", "r_elbow_roll_joint",
-  "frac_max_speed", NULL };
+  "r_wrist_yaw_joint", "frac_max_speed", NULL };
 
 // helper function
 
@@ -438,14 +441,14 @@ static PyObject * PyModule_NaoSetLegStiffness( PyObject * self, PyObject * args 
  *  \memberof PyNAO
  *  \brief Move a NAO arm to a sequence of joint positions, i.e. trajectory.
  *  \param list joint_trajectory. A list of joint position dictionaries with the same structure of the PyNAO.moveArmWithJointPos.
- *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call.
+ *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call (Default False).
  *  \return None.
  */
 static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * args )
 {
   PyObject * trajObj = NULL;
   PyObject * isYesObj = NULL;
-  bool inpost = false;
+  bool inpost = true;
 
   if (!PyArg_ParseTuple( args, "O|O", &trajObj, &isYesObj )) {
     // PyArg_ParseTuple will set the error status.
@@ -461,7 +464,7 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
 
   if (isYesObj) {
     if (PyBool_Check( isYesObj )) {
-      inpost = PyObject_IsTrue( isYesObj );
+      inpost = !PyObject_IsTrue( isYesObj );
     }
     else {
       PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointTrajectory: the second parameter must be a boolean!" );
@@ -478,9 +481,9 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
 
   for (int i = 0; i < listSize; ++i) {
     jointPos = PyList_GetItem( trajObj, i );
-    if (!PyDict_Check( jointPos ) || PyDict_Size( jointPos ) < 4) {
+    if (!PyDict_Check( jointPos ) || PyDict_Size( jointPos ) < 5) {
       PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointTrajectory: input list item %d "
-                   "must be a dictionary containing all 4 joint entries for a NAO arm!", i );
+                   "must be a dictionary containing all 5 joint entries for a NAO arm!", i );
       return NULL;
     }
     if (!armsel) { // check first object to determine whether we have either left or right arm joint data
@@ -503,9 +506,9 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
       }
     }
 
-    std::vector<float> arm_joint_pos( 4, 0.0 );
+    std::vector<float> arm_joint_pos( 5, 0.0 );
 
-    for (int k = 0; k < 4; k++) {
+    for (int k = 0; k < 5; k++) {
       jval = PyDict_GetItemString( jointPos, (armsel == 1 ? kLeftArmKWlist[k] : kRightArmKWlist[k]) );
       if (!jval) {
         PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointTrajectory: input list item %d has"
@@ -533,30 +536,33 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
   Py_RETURN_NONE;
 }
 
-/*! \fn moveArmWithJointPos(joint_position, frac_max_speed)
+/*! \fn moveArmWithJointPos(joint_position, frac_max_speed, is_blocking)
  *  \memberof PyNAO
  *  \brief Move a NAO's arm to the specified joint position with a certain speed.
  *  \param dict joint_position. A dictionary of arm joint positions in radian.
  *  The dictionary must the same structure as the return of PyNAO.getArmJointPositions.
  *  \param float frac_max_speed. Fraction of the maximum motor speed.
+ *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call (Default False).
  *  \return None.
  */
 static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * args, PyObject * keywds )
 {
-  float s_p_j, s_r_j, e_y_j, e_r_j;
+  float s_p_j, s_r_j, e_y_j, e_r_j, w_y_j;
   float frac_max_speed = 0.5;
+  PyObject * boolObj = NULL;
 
   bool isLeftArm = false;
+  bool inpost = true;
 
-  if (PyArg_ParseTupleAndKeywords( args, keywds, "ffff|f", (char**)kLeftArmKWlist,
-                                  &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed ))
+  if (PyArg_ParseTupleAndKeywords( args, keywds, "fffff|fO", (char**)kLeftArmKWlist,
+                                  &s_p_j, &s_r_j, &e_y_j, &e_r_j, &w_y_j, &frac_max_speed, &boolObj ))
   {
     isLeftArm = true;
   }
   else {
     PyErr_Clear();
-    if (!PyArg_ParseTupleAndKeywords( args, keywds, "ffff|f", (char**)kRightArmKWlist,
-                                     &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed ))
+    if (!PyArg_ParseTupleAndKeywords( args, keywds, "fffff|fO", (char**)kRightArmKWlist,
+                                     &s_p_j, &s_r_j, &e_y_j, &e_r_j, &w_y_j, &frac_max_speed, &boolObj ))
     {
       // PyArg_ParseTuple will set the error status.
       return NULL;
@@ -568,13 +574,24 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
     return NULL;
   }
 
-  std::vector<float> positions( 4, 0.0 );
+  if (boolObj) {
+    if (PyBool_Check( boolObj )) {
+      inpost = !PyObject_IsTrue( boolObj );
+    }
+    else {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointPos: is_blocking parameter must be a boolean!" );
+      return NULL;
+    }
+  }
+
+  std::vector<float> positions( 5, 0.0 );
   positions[0] = s_p_j;
   positions[1] = s_r_j;
   positions[2] = e_y_j;
   positions[3] = e_r_j;
+  positions[4] = w_y_j;
 
-  NaoProxyManager::instance()->moveArmWithJointPos( isLeftArm, positions, frac_max_speed );
+  NaoProxyManager::instance()->moveArmWithJointPos( isLeftArm, positions, frac_max_speed, inpost );
   Py_RETURN_NONE;
 }
 
@@ -639,18 +656,18 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
 {
   float l_h_y_p_j, l_h_r_j, l_h_p_j, l_k_p_j, l_a_p_j, l_a_r_j;
   float r_h_y_p_j, r_h_r_j, r_h_p_j, r_k_p_j, r_a_p_j, r_a_r_j;
-  float l_s_p_j, l_s_r_j, l_e_y_j, l_e_r_j;
-  float r_s_p_j, r_s_r_j, r_e_y_j, r_e_r_j;
+  float l_s_p_j, l_s_r_j, l_e_y_j, l_e_r_j, l_w_y_j;
+  float r_s_p_j, r_s_r_j, r_e_y_j, r_e_r_j, r_w_y_j;
   float h_y_j, h_p_j;
 
   float frac_max_speed = 0.5;
 
-  if (!PyArg_ParseTupleAndKeywords( args, keywds, "ffffffffffffffffffffff|f",
+  if (!PyArg_ParseTupleAndKeywords( args, keywds, "ffffffffffffffffffffffff|f",
                                    (char**)kBodyKWlist, &h_y_j, &h_p_j,
-                                   &l_s_p_j, &l_s_r_j, &l_e_y_j, &l_e_r_j,
+                                   &l_s_p_j, &l_s_r_j, &l_e_y_j, &l_e_r_j, &l_w_y_j,
                                    &l_h_y_p_j, &l_h_r_j, &l_h_p_j, &l_k_p_j, &l_a_p_j, &l_a_r_j,
                                    &r_h_y_p_j, &r_h_r_j, &r_h_p_j, &r_k_p_j, &r_a_p_j, &r_a_r_j,
-                                   &r_s_p_j, &r_s_r_j, &r_e_y_j, &r_e_r_j,
+                                   &r_s_p_j, &r_s_r_j, &r_e_y_j, &r_e_r_j, &r_w_y_j,
                                    &frac_max_speed ))
   {
     // PyArg_ParseTuple will set the error status.
@@ -662,7 +679,7 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
     return NULL;
   }
 
-  std::vector<float> positions( 22, 0.0 );
+  std::vector<float> positions( 24, 0.0 );
   positions[0] = h_y_j;
   positions[1] = h_p_j;
 
@@ -670,25 +687,27 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
   positions[3] = l_s_r_j;
   positions[4] = l_e_y_j;
   positions[5] = l_e_r_j;
+  positions[6] = l_w_y_j;
 
-  positions[6] = l_h_y_p_j;
-  positions[7] = l_h_r_j;
-  positions[8] = l_h_p_j;
-  positions[9] = l_k_p_j;
-  positions[10] = l_a_p_j;
-  positions[11] = l_a_r_j;
+  positions[7] = l_h_y_p_j;
+  positions[8] = l_h_r_j;
+  positions[9] = l_h_p_j;
+  positions[10] = l_k_p_j;
+  positions[11] = l_a_p_j;
+  positions[12] = l_a_r_j;
 
-  positions[12] = r_h_y_p_j;
-  positions[13] = r_h_r_j;
-  positions[14] = r_h_p_j;
-  positions[15] = r_k_p_j;
-  positions[16] = r_a_p_j;
-  positions[17] = r_a_r_j;
+  positions[13] = r_h_y_p_j;
+  positions[14] = r_h_r_j;
+  positions[15] = r_h_p_j;
+  positions[16] = r_k_p_j;
+  positions[17] = r_a_p_j;
+  positions[18] = r_a_r_j;
 
-  positions[18] = r_s_p_j;
-  positions[19] = r_s_r_j;
-  positions[20] = r_e_y_j;
-  positions[21] = r_e_r_j;
+  positions[19] = r_s_p_j;
+  positions[20] = r_s_r_j;
+  positions[21] = r_e_y_j;
+  positions[22] = r_e_r_j;
+  positions[23] = r_w_y_j;
 
   NaoProxyManager::instance()->moveBodyWithJointPos( positions, frac_max_speed );
   Py_RETURN_NONE;
@@ -730,11 +749,11 @@ static PyObject * PyModule_NaoGetArmJointPositions( PyObject * self, PyObject * 
     }
   }
 
-  std::vector<float> positions( 4, 0.0 );
+  std::vector<float> positions( 5, 0.0 );
 
   NaoProxyManager::instance()->getArmJointsPos( isLeftArm, positions, useSensor );
   PyObject * retObj = PyDict_New();
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     PyObject * numObj = PyFloat_FromDouble( positions.at( i ) );
     PyDict_SetItemString( retObj, (isLeftArm ? kLeftArmKWlist[i] : kRightArmKWlist[i]), numObj );
     Py_DECREF( numObj );
@@ -818,16 +837,223 @@ static PyObject * PyModule_NaoGetBodyJointPositions( PyObject * self, PyObject *
     }
   }
 
-  std::vector<float> positions( 22, 0.0 );
+  std::vector<float> positions( 24, 0.0 );
 
   NaoProxyManager::instance()->getBodyJointsPos( positions, useSensor );
   PyObject * retObj = PyDict_New();
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 24; i++) {
     PyObject * numObj = PyFloat_FromDouble( positions.at( i ) );
     PyDict_SetItemString( retObj, kBodyKWlist[i], numObj );
     Py_DECREF( numObj );
   }
   return retObj;
+}
+
+/*! \fn moveBodyTo(x,y,theta,cancel_previous_move, is_blocking)
+ *  \memberof PyNAO
+ *  \brief Move the NAO body to a pose at (x,y,theta).
+ *  \param float x. X coordinate w.r.t. the current pose.
+ *  \param float y. Y coordinate w.r.t. the current pose.
+ *  \param float theta. Angular position w.r.t. the current pose.
+ *  \param bool cancel_previous_move. Optional cancel previous move command if it is still executing (default False).
+ *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call (Default False).
+ *  \return bool. True == valid command; False == invalid command.
+ */
+static PyObject * PyModule_NaoMoveBodyTo( PyObject * self, PyObject * args )
+{
+  float xcoord = 0.0;
+  float ycoord = 0.0;
+  float theta = 0.0;
+  bool cancelMove = false;
+  bool inpost = true;
+
+  PyObject * boolObj = NULL;
+  PyObject * isBlockObj = NULL;
+
+
+  if (!PyArg_ParseTuple( args, "fff|OO", &xcoord, &ycoord, &theta, &boolObj, &isBlockObj )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+  if (boolObj) {
+    if (!PyBool_Check( boolObj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyTo: optional input parameters must be a boolean!" );
+      return NULL;
+    }
+    cancelMove = PyObject_IsTrue( boolObj );
+  }
+  if (isBlockObj) {
+    if (!PyBool_Check( isBlockObj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyTo: optional input parameters must be a boolean!" );
+      return NULL;
+    }
+    inpost = !PyObject_IsTrue( isBlockObj );
+  }
+
+
+  RobotPose pose;
+  pose.x = xcoord;
+  pose.y = ycoord;
+  pose.theta = theta;
+
+  if (NaoProxyManager::instance()->moveBodyTo( pose, cancelMove, inpost ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
+}
+
+/*! \fn openHand(which_hand, keep_stiffness)
+ *  \memberof PyNAO
+ *  \brief Opens one or both NAO hands.
+ *  \param int which_hand. 1 = left hand, 2 = right hand and 3 = both hand.
+ *  \param bool keep_stiffness. Optional, keep stiffness on after opening the hand (default False).
+ *  \return bool. True == valid command; False == invalid command.
+ */
+static PyObject * PyModule_NaoOpenHand( PyObject * self, PyObject * args )
+{
+  int mode = 0;
+  bool keepStiffness = false;
+  PyObject * boolObj = NULL;
+
+  if (!PyArg_ParseTuple( args, "i|O", &mode, &boolObj )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  if (boolObj) {
+    if (!PyBool_Check( boolObj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.openHand: last optional input parameter must be a boolean!" );
+      return NULL;
+    }
+    keepStiffness = PyObject_IsTrue( boolObj );
+  }
+
+  switch (mode) {
+    case 1:
+      if (NaoProxyManager::instance()->setHandPosition( true, 1.0, keepStiffness ))
+        Py_RETURN_TRUE;
+      break;
+    case 2:
+      if (NaoProxyManager::instance()->setHandPosition( false, 1.0, keepStiffness ))
+        Py_RETURN_TRUE;
+      break;
+    case 3:
+      if (NaoProxyManager::instance()->setHandPosition( true, 1.0, keepStiffness ) &&
+          NaoProxyManager::instance()->setHandPosition( false, 1.0, keepStiffness ))
+      {
+        Py_RETURN_TRUE;
+      }
+      break;
+    default:
+      PyErr_Format( PyExc_ValueError, "PyNAO.openHand: invalid hand number! 1 = left hand, 2 = right hand and 3 = both hand." );
+      return NULL;
+  }
+  Py_RETURN_FALSE;
+}
+
+/*! \fn closeHand(which_hand, keep_stiffness)
+ *  \memberof PyNAO
+ *  \brief Closes one or both NAO hands.
+ *  \param int which_hand. 1 = left hand, 2 = right hand and 3 = both hands.
+ *  \param bool keep_stiffness. Optional, keep stiffness on after closing the hand (default False).
+ *  \return bool. True == valid command; False == invalid command.
+ */
+static PyObject * PyModule_NaoCloseHand( PyObject * self, PyObject * args )
+{
+  int mode = 0;
+  bool keepStiffness = false;
+  PyObject * boolObj = NULL;
+
+  if (!PyArg_ParseTuple( args, "i|O", &mode, &boolObj )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  if (boolObj) {
+    if (!PyBool_Check( boolObj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.closeHand: last optional input parameter must be a boolean!" );
+      return NULL;
+    }
+    keepStiffness = PyObject_IsTrue( boolObj );
+  }
+
+  switch (mode) {
+    case 1:
+      if (NaoProxyManager::instance()->setHandPosition( true, 0.0, keepStiffness ))
+        Py_RETURN_TRUE;
+      break;
+    case 2:
+      if (NaoProxyManager::instance()->setHandPosition( false, 0.0, keepStiffness ))
+        Py_RETURN_TRUE;
+      break;
+    case 3:
+      if (NaoProxyManager::instance()->setHandPosition( true, 0.0, keepStiffness ) &&
+          NaoProxyManager::instance()->setHandPosition( false, 0.0, keepStiffness ))
+      {
+        Py_RETURN_TRUE;
+      }
+      break;
+    default:
+      PyErr_Format( PyExc_ValueError, "PyNAO.closeHand: invalid hand number! 1 = left hand, 2 = right hand and 3 = both hand." );
+      return NULL;
+  }
+  Py_RETURN_FALSE;
+}
+
+/*! \fn setHandPosition(which_hand, hand_joint_ratio, keep_stiffness)
+ *  \memberof PyNAO
+ *  \brief open one of NAO hands to the specified ratio [0..1.0].
+ *  \param int which_hand. 1 = left hand, 2 = right hand and 3 = both hands.
+ *  \param float hand_joint_ratio. Hand opening ratio [0..1.0].
+ *  \param bool keep_stiffness. Optional, keep stiffness on after closing the hand (default False).
+ */
+static PyObject * PyModule_NaoSetHandPosition( PyObject * self, PyObject * args, PyObject * keywds  )
+{
+  int mode = 0;
+  float ratio = 0.0;
+  PyObject * boolObj = NULL;
+
+  bool keepStiffness = false;
+
+  if (!PyArg_ParseTuple( args, "if|O", &mode, &ratio, &boolObj )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  if (ratio < 0.0 || ratio > 1.0) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.setHandPosition: ratio parameter must be within [0..1.0]!" );
+    return NULL;
+  }
+
+  if (boolObj) {
+    if (!PyBool_Check( boolObj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.setHandPosition: last optional input parameter must be a boolean!" );
+      return NULL;
+    }
+    keepStiffness = PyObject_IsTrue( boolObj );
+  }
+
+  switch (mode) {
+    case 1:
+      if (NaoProxyManager::instance()->setHandPosition( true, ratio, keepStiffness ))
+        Py_RETURN_TRUE;
+      break;
+    case 2:
+      if (NaoProxyManager::instance()->setHandPosition( false, ratio, keepStiffness ))
+        Py_RETURN_TRUE;
+      break;
+    case 3:
+      if (NaoProxyManager::instance()->setHandPosition( true, ratio, keepStiffness ) &&
+          NaoProxyManager::instance()->setHandPosition( false, ratio, keepStiffness ))
+      {
+        Py_RETURN_TRUE;
+      }
+      break;
+    default:
+      PyErr_Format( PyExc_ValueError, "PyNAO.setHandPosition: invalid hand number! 1 = left hand, 2 = right hand and 3 = both hand." );
+      return NULL;
+  }
+  Py_RETURN_FALSE;
 }
 
 /** @name Audio Management Functions
@@ -1140,6 +1366,14 @@ static PyMethodDef PyModule_methods[] = {
     "Get joint positions of Nao's legs." },
   { "getBodyJointPositions", (PyCFunction)PyModule_NaoGetBodyJointPositions, METH_VARARGS,
     "Get full joint positions of Nao." },
+  { "moveBodyTo", (PyCFunction)PyModule_NaoMoveBodyTo, METH_VARARGS,
+    "Walk NAO to a new pose." },
+  { "openHand", (PyCFunction)PyModule_NaoOpenHand, METH_VARARGS,
+    "Open one or both NAO hands." },
+  { "closeHand", (PyCFunction)PyModule_NaoCloseHand, METH_VARARGS,
+    "Close one or both NAO hand." },
+  { "setHandPosition", (PyCFunction)PyModule_NaoSetHandPosition, METH_VARARGS,
+    "Set specific opening ratio on one or both NAO hands." },
   { "loadAudioFile", (PyCFunction)PyModule_NaoLoadAudioFile, METH_VARARGS,
     "Load an audio file on NAO." },
   { "unloadAudioFile", (PyCFunction)PyModule_NaoUnloadAudioFile, METH_VARARGS,

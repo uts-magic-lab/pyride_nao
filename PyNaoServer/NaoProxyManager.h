@@ -37,13 +37,14 @@ typedef enum {
   PINK
 } NAOLedColour;
 
-enum { // we are dealing with standard soccer NAO only.
+enum { // standard configuration for NAO V4/V5.
   HEAD_YAW = 0,
   HEAD_PITCH,
   L_SHOULDER_PITCH,
   L_SHOULDER_ROLL,
   L_ELBOW_YAW,
   L_ELBOW_ROLL,
+  L_WRIST_YAW,
   L_HIP_YAW_PITCH,
   L_HIP_ROLL,
   L_HIP_PITCH,
@@ -59,7 +60,10 @@ enum { // we are dealing with standard soccer NAO only.
   R_SHOULDER_PITCH,
   R_SHOULDER_ROLL,
   R_ELBOW_YAW,
-  R_ELBOW_ROLL
+  R_ELBOW_ROLL,
+  R_WRIST_YAW,
+  L_HAND,
+  R_HAND
 };
 
 class NaoProxyManager
@@ -104,7 +108,7 @@ public:
   void setLegStiffness( bool isLeft, const float stiff );
 
   bool moveArmWithJointPos( bool isLeft, const std::vector<float> & positions,
-                           float frac_speed = 0.5 );
+                            float frac_speed = 0.5, bool inpost = false );
   
   void moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
                                                    std::vector<float> & times_to_reach, bool inpost = false );
@@ -115,12 +119,14 @@ public:
   bool moveBodyWithJointPos( const std::vector<float> & positions,
                             float frac_speed = 0.5 );
 
+  bool setHandPosition( bool isLeft, float openRatio, bool keepStiff );
+
   void sit( bool relax = false );
   void stand( bool init = false );
   void crouch();
   void lyingDown( bool bellyUp = true );
 
-  bool moveBodyTo( const RobotPose & pose, bool cancelPreviousMove = false );
+  bool moveBodyTo( const RobotPose & pose, bool cancelPreviousMove = false, bool inpost = false );
 
   void updateBodyPose( const RobotPose & pose );
   

@@ -14,6 +14,6 @@ qi_create_lib( pynaoserver
   SHARED
 )
 
-qi_use_lib(pynaoserver ALCOMMON ALVISION ALAUDIO pyridecore tinyxml )
+qi_use_lib(pynaoserver ALCOMMON ALVISION ALAUDIO pyridecore)
 # qi_create_bin(...)
 
