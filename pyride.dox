@@ -651,6 +651,7 @@ WARN_LOGFILE           =
 INPUT                  = mainpage.dox \
                          libsrc/pyridecore/PyModulePyCommon.cpp \
                          libsrc/pyridecore/PyModuleStub.cpp \
+                         PyNaoServer/PyNaoServer.cpp \
                          PyNaoServer/PyNAOModule.cpp \
                          PyNaoServer/NaoProxyManager.cpp 
 

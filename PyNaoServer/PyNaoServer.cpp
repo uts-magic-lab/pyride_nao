@@ -296,7 +296,27 @@ PyNaoServer::PyNaoServer( boost::shared_ptr<ALBroker> pBroker, const std::string
   functionName( "onRightBumperPressed", getName(), "Method called when the right bumper is pressed.");
   BIND_METHOD( PyNaoServer::onRightBumperPressed );
   functionName("onLeftBumperPressed", getName(), "Method called when the left bumper is pressed.");
-  BIND_METHOD( PyNaoServer::onLeftBumperPressed );
+  BIND_METHOD( PyNaoServer::onLeftBumperPressed );  functionName("onFrontTactilTouched", getName(), "Method called when the head front tactile is touched.");
+
+  BIND_METHOD( PyNaoServer::onFrontTactilTouched );
+  functionName("onMiddleTactilTouched", getName(), "Method called when the head middle tactile is touched.");
+  BIND_METHOD( PyNaoServer::onMiddleTactilTouched );
+  functionName("onRearTactilTouched", getName(), "Method called when the head rear tactile is touched.");
+  BIND_METHOD( PyNaoServer::onRearTactilTouched );
+
+  functionName("onRightHandBackTouched", getName(), "Method called when the back tactile of the right hand is touched.");
+  BIND_METHOD( PyNaoServer::onRightHandBackTouched );
+  functionName("onRightHandLeftTouched", getName(), "Method called when the left tactile of the right hand is touched.");
+  BIND_METHOD( PyNaoServer::onRightHandLeftTouched );
+  functionName("onRightHandRightTouched", getName(), "Method called when the right tactile of the right hand is touched.");
+  BIND_METHOD( PyNaoServer::onRightHandRightTouched );
+  functionName("onLeftHandBackTouched", getName(), "Method called when the back tactile of the left hand is touched.");
+  BIND_METHOD( PyNaoServer::onLeftHandBackTouched );
+  functionName("onLeftHandLeftTouched", getName(), "Method called when the left tactile of the left hand is touched.");
+  BIND_METHOD( PyNaoServer::onLeftHandLeftTouched );
+  functionName("onLeftHandRightTouched", getName(), "Method called when the right tactile of the left hand is touched.");
+  BIND_METHOD( PyNaoServer::onLeftHandRightTouched );
+
   functionName("onSingleChestButtonPressed", getName(), "Method called when the chest button pressed once.");
   BIND_METHOD( PyNaoServer::onSingleChestButtonPressed );
   functionName("onDoubleChestButtonPressed", getName(), "Method called when the chest button pressed twice.");
@@ -345,6 +365,18 @@ void PyNaoServer::init()
     /* subscribe to sensor events */
     memoryProxy_->subscribeToEvent( "RightBumperPressed", "PyNaoServer", "onRightBumperPressed" );
     memoryProxy_->subscribeToEvent( "LeftBumperPressed", "PyNaoServer", "onLeftBumperPressed" );
+
+    memoryProxy_->subscribeToEvent( "FrontTactilTouched", "PyNaoServer", "onFrontTactilTouched" );
+    memoryProxy_->subscribeToEvent( "MiddleTactilTouched", "PyNaoServer", "onMiddleTactilTouched" );
+    memoryProxy_->subscribeToEvent( "RearTactilTouched", "PyNaoServer", "onRearTactilTouched" );
+
+    memoryProxy_->subscribeToEvent( "HandRightBackTouched", "PyNaoServer", "onRightHandBackTouched" );
+    memoryProxy_->subscribeToEvent( "HandRightLeftTouched", "PyNaoServer", "onRightHandLeftTouched" );
+    memoryProxy_->subscribeToEvent( "HandRightRightTouched", "PyNaoServer", "onRightHandRightTouched" );
+    memoryProxy_->subscribeToEvent( "HandLeftBackTouched", "PyNaoServer", "onLeftHandBackTouched" );
+    memoryProxy_->subscribeToEvent( "HandLightLeftTouched", "PyNaoServer", "onLeftHandLeftTouched" );
+    memoryProxy_->subscribeToEvent( "HandLightRightTouched", "PyNaoServer", "onLeftHandRightTouched" );
+
     memoryProxy_->subscribeToEvent( "ALChestButton/SimpleClickOccurred", "PyNaoServer", "onSingleChestButtonPressed" );
     memoryProxy_->subscribeToEvent( "ALChestButton/DoubleClickOccurred", "PyNaoServer", "onDoubleChestButtonPressed" );
     memoryProxy_->subscribeToEvent( "ALChestButton/TripleClickOccurred", "PyNaoServer", "onTripleChestButtonPressed" );
@@ -436,6 +468,16 @@ PyNaoServer::~PyNaoServer()
 
 #pragma callback functions from alproxies.
 
+/** @name Event Callback Functions
+ *
+ */
+/**@{*/
+/*! \typedef onBumperPressed(side)
+ *  \memberof PyNAO.
+ *  \brief Callback function when one of NAO's bumpers is pressed.
+ *  \param str side: side = "right" for the right bumper or  "left" for the left bumper.
+ *  \return None.
+ */
 void PyNaoServer::onRightBumperPressed()
 {
   ALCriticalSection section( callbackMutex_ );
@@ -482,6 +524,215 @@ void PyNaoServer::onLeftBumperPressed()
   }
 }
 
+/*! \typedef onHeadTactileTouched(side)
+ *  \memberof PyNAO.
+ *  \brief Callback function when one of NAO's head tactile sensor is touched.
+ *  \param str side: side = "front" for the front tactile,  "middle" for the middle tactile and "rear" from the back tactile.
+ *  \return None.
+ */
+void PyNaoServer::onFrontTactilTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  /**
+   * Check that the bumper is pressed.
+   */
+  float stat =  memoryProxy_->getData( "FrontTactilTouched" );
+  if (stat  > 0.5f) {
+    PyObject * arg = NULL;
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+    arg = Py_BuildValue( "(s)", "front" );
+
+    PyNAOModule::instance()->invokeCallback( "onHeadTactileTouched", arg );
+    Py_DECREF( arg );
+
+    PyGILState_Release( gstate );
+  }
+}
+
+void PyNaoServer::onMiddleTactilTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  /**
+   * Check that the bumper is pressed.
+   */
+  float stat =  memoryProxy_->getData( "MiddleTactilTouched" );
+  if (stat  > 0.5f) {
+    PyObject * arg = NULL;
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+    arg = Py_BuildValue( "(s)", "middle" );
+
+    PyNAOModule::instance()->invokeCallback( "onHeadTactileTouched", arg );
+    Py_DECREF( arg );
+
+    PyGILState_Release( gstate );
+  }
+}
+
+void PyNaoServer::onRearTactilTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  /**
+   * Check that the bumper is pressed.
+   */
+  float stat =  memoryProxy_->getData( "RearTactilTouched" );
+  if (stat  > 0.5f) {
+    PyObject * arg = NULL;
+
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
+
+    arg = Py_BuildValue( "(s)", "rear" );
+
+    PyNAOModule::instance()->invokeCallback( "onHeadTactileTouched", arg );
+    Py_DECREF( arg );
+
+    PyGILState_Release( gstate );
+  }
+}
+
+/*! \typedef onRightHandTouched(side, status)
+ *  \memberof PyNAO.
+ *  \brief Callback function when one of NAO's right hand tactile sensor is touched.
+ *  \param str side. side = "back" for the back tactile,  "right" for the right tactile and "left" from the left tactile.
+ *  \param bool status. True == touch on, False == touch off.
+ *  \return None.
+ */
+void PyNaoServer::onRightHandBackTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  float stat =  memoryProxy_->getData( "HandRightBackTouched" );
+
+  PyObject * arg = NULL;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  arg = Py_BuildValue( "(sO)", "back", (stat > 0.5f ? Py_True : Py_False) );
+
+  PyNAOModule::instance()->invokeCallback( "onRightHandTouched", arg );
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+}
+
+void PyNaoServer::onRightHandLeftTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  float stat =  memoryProxy_->getData( "HandRightLeftTouched" );
+
+  PyObject * arg = NULL;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  arg = Py_BuildValue( "(sO)", "left", (stat > 0.5f ? Py_True : Py_False) );
+
+  PyNAOModule::instance()->invokeCallback( "onRightHandTouched", arg );
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+}
+
+void PyNaoServer::onRightHandRightTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  float stat =  memoryProxy_->getData( "HandRightRightTouched" );
+
+  PyObject * arg = NULL;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  arg = Py_BuildValue( "(sO)", "right", (stat > 0.5f ? Py_True : Py_False) );
+
+  PyNAOModule::instance()->invokeCallback( "onRightHandTouched", arg );
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+}
+
+/*! \typedef onLeftHandTouched(side, status)
+ *  \memberof PyNAO.
+ *  \brief Callback function when one of NAO's left hand tactile sensor is touched.
+ *  \param str side. side = "back" for the back tactile,  "right" for the right tactile and "left" from the left tactile.
+ *  \param str status. status = "on" for touch on or "off" for touch off.
+ *  \return None.
+ */
+void PyNaoServer::onLeftHandBackTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  float stat =  memoryProxy_->getData( "HandLeftBackTouched" );
+
+  PyObject * arg = NULL;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  arg = Py_BuildValue( "(sO)", "back", (stat > 0.5f ? Py_True : Py_False) );
+
+  PyNAOModule::instance()->invokeCallback( "onLeftHandTouched", arg );
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+}
+
+void PyNaoServer::onLeftHandLeftTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  float stat =  memoryProxy_->getData( "HandLeftLeftTouched" );
+
+  PyObject * arg = NULL;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  arg = Py_BuildValue( "(sO)", "left", (stat > 0.5f ? Py_True : Py_False) );
+
+  PyNAOModule::instance()->invokeCallback( "onLeftHandTouched", arg );
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+}
+
+void PyNaoServer::onLeftHandRightTouched()
+{
+  ALCriticalSection section( callbackMutex_ );
+
+  float stat =  memoryProxy_->getData( "HandLeftRightTouched" );
+
+  PyObject * arg = NULL;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  arg = Py_BuildValue( "(sO)", "right", (stat > 0.5f ? Py_True : Py_False) );
+
+  PyNAOModule::instance()->invokeCallback( "onLeftHandTouched", arg );
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+}
+
+/*! \typedef onChestButtonPressed(presses)
+ *  \memberof PyNAO.
+ *  \brief Callback function when the chest button is pressed.
+ *  \param int presses. Number of presses occurred.
+  *  \return None.
+ */
 void PyNaoServer::onSingleChestButtonPressed()
 {
   ALCriticalSection section( callbackMutex_ );
@@ -542,6 +793,12 @@ void PyNaoServer::onTripleChestButtonPressed()
   PyGILState_Release( gstate );
 }
 
+/*! \typedef onPowerPluggedChange(is_plugged)
+ *  \memberof PyNAO.
+ *  \brief Callback function when NAO change between battery power or main power.
+ *  \param bool is_plugged. True == plugged into main, False == on battery power.
+  *  \return None.
+ */
 void PyNaoServer::onBatteryPowerPlugged()
 {
   ALCriticalSection section( callbackMutex_ );
@@ -563,13 +820,17 @@ void PyNaoServer::onBatteryPowerPlugged()
   PyGILState_Release( gstate );
 }
 
+/*! \typedef onBatteryChargeChange(bat_percent, is_discharging)
+ *  \memberof PyNAO.
+ *  \brief Callback function when the NAO battery status has changed.
+ *  \param int bat_percent. The remaining battery percentage within [0..100].
+ *  \param bool is_discharging. True == the battery is discharging, False == the batter is charging.
+  *  \return None.
+ */
 void PyNaoServer::onBatteryChargeChanged()
 {
   ALCriticalSection section( callbackMutex_ );
   
-  /**
-   * Check that the bumper is pressed.
-   */
   int batpercent =  memoryProxy_->getData( "BatteryChargeChanged" );
   bool discharging = memoryProxy_->getData( "BatteryDisChargingFlagChanged" );
 
@@ -586,7 +847,13 @@ void PyNaoServer::onBatteryChargeChanged()
   
   PyGILState_Release( gstate );
 }
-  
+
+/*! \typedef onSystemShutdown()
+ *  \memberof PyNAO.
+ *  \brief Callback function when the NAO is shutting down.
+ *  \return None.
+ *  \note Currently (v2.1.4) NaoQi does not exit correctly when NAO is shutting down using the chest button. Init script needs update.
+ */
 void PyNaoServer::notifySystemShutdown()
 {
   INFO_MSG( "PyNaoServer is shutting down..\n" );
@@ -600,4 +867,6 @@ void PyNaoServer::notifySystemShutdown()
   
   PyGILState_Release( gstate );
 }
+/**@}*/
+
 } // namespace pyride
