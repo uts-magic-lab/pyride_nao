@@ -9,7 +9,7 @@ software development framework for rapid robot behaviour programming in Python s
 
 \section compile Compile and Install from source for NAO
 \subsection require Prerequisites
-PyRIDE on NAO uses the qibuild system(v1.14.3). It requires a full NAOQi SDK(v1.14.3) installation with associated cross compiler on a Linux/OS X system. The respository contains all required third
+PyRIDE on NAO uses the qibuild system(v3.11.6). It requires a full NAOQi SDK(v2.1.4) installation with associated cross compiler on a Linux/OS X system. The respository contains all required third
 party libraries modified to compile under qibuild system. 
 
 \subsection compile To compile PyRIDE for NAO

@@ -3,11 +3,11 @@
 ## Introduction
 This repository contains PyRIDE for Aldebaran NAO robots. For more detailed introduction on PyRIDE, see [README](https://github.com/uts-magic-lab/pyride_pr2/blob/master/README.md) of PyRIDE for ROS/PR2.
 
-**WARNING:** This version of PyRIDE is compatible with NaoQi SDK version 2.4.3 and below. It requires code updates to be compatible with later version of NaoQi SDK.
+**WARNING:** This version of PyRIDE is compatible with NaoQi SDK version 2.1.4 and below. It requires code updates to be compatible with later version of NaoQi SDK.
 
 ## Compile source code
 ### Prerequisites
-You need NaoQi SDK 2.4.3 with the corresponding cross compiler toolchain installed on your system. You will also need qibuild 3.11.x build system installed.
+You need NaoQi SDK 2.1.4 with the corresponding cross compiler toolchain installed on your system. You will also need qibuild 3.11.x build system installed.
 
 ### Source code structure
 PyRIDE for NAO is dependent on several open source third-party libraries. Since there is no prebuild library binaries, this repository contains modified source code of these libraries so that you can build and install them manually on your NAO robots. In addition, PyRIDE on NAO has been partitioned into two components: PyRideCore and PyNaoServer. PyRideCore contains core functionalities that are available to all supported robot platforms. PyNaoServer contains code that is specific to the NAO robot platform. Third-party libraries and PyRideCore are under ```libsrc``` directory. PyNaoServer is located under ```PyNaoServer``` directory. ```scripts``` contains default example Python scripts that run on PyRIDE for NAO.
