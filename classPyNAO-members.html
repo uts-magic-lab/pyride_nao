@@ -112,9 +112,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#a4bb71603b06d25552d29e67f6e7d83f9">moveBodyWithJointPos</a>(joint_position, frac_max_speed)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="classPyNAO.html#ae0e1ca758698cef8f8f8d24e325e4c40">moveHeadTo</a>(head_yaw, head_pitch, is_absolute)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#addc36b3747ab815f71e664f8cd417af8">moveLegWithJointPos</a>(joint_position, frac_max_speed)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="classPyNAO.html#a3db2e5359b0c6241217f446624072ae4">onPeerMessage</a>(sender_id, message)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classPyNAO.html#a139cb16cc466549702741c8a6b60aea5">onBatteryChargeChange</a>(bat_percent, is_discharging)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#a989247434f578d3889da167224061bf4">onBumperPressed</a>(side)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classPyNAO.html#a8757e485b210779eb7bb1fcdcb567eed">onChestButtonPressed</a>(presses)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#a0f93808c2050837cc14defb8a4813071">onHeadTactileTouched</a>(side)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classPyNAO.html#a4821f29e9230c691c99569da4290c63c">onLeftHandTouched</a>(side, status)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#a3db2e5359b0c6241217f446624072ae4">onPeerMessage</a>(sender_id, message)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classPyNAO.html#a74a8de359046da5bd3fc6384e37f917b">onPowerPluggedChange</a>(is_plugged)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#ab066ed63929d4f1e7793724fd5401563">onRemoteCommand</a>(cmd_id, cmd_text)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="classPyNAO.html#af8bc1cd49c8ec2faea99608dca5a30e5">onSnapshotImage</a>(image_name)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classPyNAO.html#a4f92e547673cd28ebe862a4c35cb8e02">onRightHandTouched</a>(side, status)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#af8bc1cd49c8ec2faea99608dca5a30e5">onSnapshotImage</a>(image_name)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classPyNAO.html#aca9727cb3a6575f69238a51e56b20ab2">onSystemShutdown</a>()</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#a8fa658106e30657bb6523ba56c7b4a6d">onTimer</a>(timer_id)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
   <tr><td class="entry"><a class="el" href="classPyNAO.html#a140ec5e71ba22485085245ed2bd4e1a8">onTimerLapsed</a>(timer_id)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
   <tr class="even"><td class="entry"><a class="el" href="classPyNAO.html#ab7f2071168f860fce1c1337d020dc97d">onUserLogOff</a>(user_name)</td><td class="entry"><a class="el" href="classPyNAO.html">PyNAO</a></td><td class="entry"></td></tr>
@@ -147,7 +155,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </table></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Oct 26 2016 18:00:13 for PyRIDE by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Oct 27 2016 12:59:54 for PyRIDE by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

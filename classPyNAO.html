@@ -226,6 +226,31 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af8bc1cd49c8ec2faea99608dca5a30e5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#af8bc1cd49c8ec2faea99608dca5a30e5">onSnapshotImage</a> (image_name)</td></tr>
 <tr class="memdesc:af8bc1cd49c8ec2faea99608dca5a30e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when <a class="el" href="classPyNAO.html#a7b9410c34ceb40818f13b52211b83275" title="Take a snapshot for the robot camera(s) ">PyNAO.takeCameraSnapshot</a> is called.  <a href="#af8bc1cd49c8ec2faea99608dca5a30e5">More...</a><br/></td></tr>
 <tr class="separator:af8bc1cd49c8ec2faea99608dca5a30e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Event Callback Functions</div></td></tr>
+<tr class="memitem:a989247434f578d3889da167224061bf4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a989247434f578d3889da167224061bf4">onBumperPressed</a> (side)</td></tr>
+<tr class="memdesc:a989247434f578d3889da167224061bf4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when one of NAO's bumpers is pressed.  <a href="#a989247434f578d3889da167224061bf4">More...</a><br/></td></tr>
+<tr class="separator:a989247434f578d3889da167224061bf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f93808c2050837cc14defb8a4813071"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a0f93808c2050837cc14defb8a4813071">onHeadTactileTouched</a> (side)</td></tr>
+<tr class="memdesc:a0f93808c2050837cc14defb8a4813071"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when one of NAO's head tactile sensor is touched.  <a href="#a0f93808c2050837cc14defb8a4813071">More...</a><br/></td></tr>
+<tr class="separator:a0f93808c2050837cc14defb8a4813071"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f92e547673cd28ebe862a4c35cb8e02"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a4f92e547673cd28ebe862a4c35cb8e02">onRightHandTouched</a> (side, status)</td></tr>
+<tr class="memdesc:a4f92e547673cd28ebe862a4c35cb8e02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when one of NAO's right hand tactile sensor is touched.  <a href="#a4f92e547673cd28ebe862a4c35cb8e02">More...</a><br/></td></tr>
+<tr class="separator:a4f92e547673cd28ebe862a4c35cb8e02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4821f29e9230c691c99569da4290c63c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a4821f29e9230c691c99569da4290c63c">onLeftHandTouched</a> (side, status)</td></tr>
+<tr class="memdesc:a4821f29e9230c691c99569da4290c63c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when one of NAO's left hand tactile sensor is touched.  <a href="#a4821f29e9230c691c99569da4290c63c">More...</a><br/></td></tr>
+<tr class="separator:a4821f29e9230c691c99569da4290c63c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8757e485b210779eb7bb1fcdcb567eed"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a8757e485b210779eb7bb1fcdcb567eed">onChestButtonPressed</a> (presses)</td></tr>
+<tr class="memdesc:a8757e485b210779eb7bb1fcdcb567eed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when the chest button is pressed.  <a href="#a8757e485b210779eb7bb1fcdcb567eed">More...</a><br/></td></tr>
+<tr class="separator:a8757e485b210779eb7bb1fcdcb567eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74a8de359046da5bd3fc6384e37f917b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a74a8de359046da5bd3fc6384e37f917b">onPowerPluggedChange</a> (is_plugged)</td></tr>
+<tr class="memdesc:a74a8de359046da5bd3fc6384e37f917b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when NAO change between battery power or main power.  <a href="#a74a8de359046da5bd3fc6384e37f917b">More...</a><br/></td></tr>
+<tr class="separator:a74a8de359046da5bd3fc6384e37f917b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a139cb16cc466549702741c8a6b60aea5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a139cb16cc466549702741c8a6b60aea5">onBatteryChargeChange</a> (bat_percent, is_discharging)</td></tr>
+<tr class="memdesc:a139cb16cc466549702741c8a6b60aea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when the NAO battery status has changed.  <a href="#a139cb16cc466549702741c8a6b60aea5">More...</a><br/></td></tr>
+<tr class="separator:a139cb16cc466549702741c8a6b60aea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca9727cb3a6575f69238a51e56b20ab2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#aca9727cb3a6575f69238a51e56b20ab2">onSystemShutdown</a> ()</td></tr>
+<tr class="memdesc:aca9727cb3a6575f69238a51e56b20ab2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback function when the NAO is shutting down.  <a href="#aca9727cb3a6575f69238a51e56b20ab2">More...</a><br/></td></tr>
+<tr class="separator:aca9727cb3a6575f69238a51e56b20ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Audio Management Functions</div></td></tr>
 <tr class="memitem:aea988c6af4ebd94b5a5752fe90ef127b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#aea988c6af4ebd94b5a5752fe90ef127b">loadAudioFile</a> (file_name)</td></tr>
 <tr class="memdesc:aea988c6af4ebd94b5a5752fe90ef127b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load an audio file into the robot system.  <a href="#aea988c6af4ebd94b5a5752fe90ef127b">More...</a><br/></td></tr>
@@ -1015,6 +1040,153 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a139cb16cc466549702741c8a6b60aea5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onBatteryChargeChange </td>
+          <td>(</td>
+          <td class="paramtype">bat_percent&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">is_discharging&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when the NAO battery status has changed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">int</td><td>bat_percent. The remaining battery percentage within [0..100]. </td></tr>
+    <tr><td class="paramname">bool</td><td>is_discharging. True == the battery is discharging, False == the batter is charging. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a989247434f578d3889da167224061bf4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onBumperPressed </td>
+          <td>(</td>
+          <td class="paramtype">side&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when one of NAO's bumpers is pressed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>side: side = "right" for the right bumper or "left" for the left bumper. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a8757e485b210779eb7bb1fcdcb567eed"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onChestButtonPressed </td>
+          <td>(</td>
+          <td class="paramtype">presses&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when the chest button is pressed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">int</td><td>presses. Number of presses occurred. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a0f93808c2050837cc14defb8a4813071"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onHeadTactileTouched </td>
+          <td>(</td>
+          <td class="paramtype">side&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when one of NAO's head tactile sensor is touched. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>side: side = "front" for the front tactile, "middle" for the middle tactile and "rear" from the back tactile. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a4821f29e9230c691c99569da4290c63c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onLeftHandTouched </td>
+          <td>(</td>
+          <td class="paramtype">side&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">status&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when one of NAO's left hand tactile sensor is touched. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>side. side = "back" for the back tactile, "right" for the right tactile and "left" from the left tactile. </td></tr>
+    <tr><td class="paramname">str</td><td>status. status = "on" for touch on or "off" for touch off. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a3db2e5359b0c6241217f446624072ae4"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1044,6 +1216,31 @@ Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">int</td><td>sender_id. The ID of the team member who sends the message. </td></tr>
     <tr><td class="paramname">str</td><td>message. Text of the message. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a74a8de359046da5bd3fc6384e37f917b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onPowerPluggedChange </td>
+          <td>(</td>
+          <td class="paramtype">is_plugged&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when NAO change between battery power or main power. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bool</td><td>is_plugged. True == plugged into main, False == on battery power. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1088,6 +1285,42 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a4f92e547673cd28ebe862a4c35cb8e02"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onRightHandTouched </td>
+          <td>(</td>
+          <td class="paramtype">side&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">status&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when one of NAO's right hand tactile sensor is touched. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>side. side = "back" for the back tactile, "right" for the right tactile and "left" from the left tactile. </td></tr>
+    <tr><td class="paramname">bool</td><td>status. True == touch on, False == touch off. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="af8bc1cd49c8ec2faea99608dca5a30e5"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1110,6 +1343,25 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aca9727cb3a6575f69238a51e56b20ab2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">onSystemShutdown </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback function when the NAO is shutting down. </p>
+<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Currently (v2.1.4) NaoQi does not exit correctly when NAO is shutting down using the chest button. Init script needs update. </dd></dl>
 
 </div>
 </div>
@@ -1910,11 +2162,12 @@ Public Member Functions</h2></td></tr>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li>PyNaoServer/PyNAOModule.cpp</li>
 <li>libsrc/pyridecore/PyModuleStub.cpp</li>
+<li>PyNaoServer/PyNaoServer.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Oct 26 2016 18:00:13 for PyRIDE by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Oct 27 2016 12:59:54 for PyRIDE by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

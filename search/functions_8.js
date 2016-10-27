@@ -1,8 +1,16 @@
 var searchData=
 [
+  ['onbatterychargechange',['onBatteryChargeChange',['../classPyNAO.html#a139cb16cc466549702741c8a6b60aea5',1,'PyNAO']]],
+  ['onbumperpressed',['onBumperPressed',['../classPyNAO.html#a989247434f578d3889da167224061bf4',1,'PyNAO']]],
+  ['onchestbuttonpressed',['onChestButtonPressed',['../classPyNAO.html#a8757e485b210779eb7bb1fcdcb567eed',1,'PyNAO']]],
+  ['onheadtactiletouched',['onHeadTactileTouched',['../classPyNAO.html#a0f93808c2050837cc14defb8a4813071',1,'PyNAO']]],
+  ['onlefthandtouched',['onLeftHandTouched',['../classPyNAO.html#a4821f29e9230c691c99569da4290c63c',1,'PyNAO']]],
   ['onpeermessage',['onPeerMessage',['../classPyNAO.html#a3db2e5359b0c6241217f446624072ae4',1,'PyNAO']]],
+  ['onpowerpluggedchange',['onPowerPluggedChange',['../classPyNAO.html#a74a8de359046da5bd3fc6384e37f917b',1,'PyNAO']]],
   ['onremotecommand',['onRemoteCommand',['../classPyNAO.html#ab066ed63929d4f1e7793724fd5401563',1,'PyNAO']]],
+  ['onrighthandtouched',['onRightHandTouched',['../classPyNAO.html#a4f92e547673cd28ebe862a4c35cb8e02',1,'PyNAO']]],
   ['onsnapshotimage',['onSnapshotImage',['../classPyNAO.html#af8bc1cd49c8ec2faea99608dca5a30e5',1,'PyNAO']]],
+  ['onsystemshutdown',['onSystemShutdown',['../classPyNAO.html#aca9727cb3a6575f69238a51e56b20ab2',1,'PyNAO']]],
   ['ontimer',['onTimer',['../classPyNAO.html#a8fa658106e30657bb6523ba56c7b4a6d',1,'PyNAO']]],
   ['ontimerlapsed',['onTimerLapsed',['../classPyNAO.html#a140ec5e71ba22485085245ed2bd4e1a8',1,'PyNAO']]],
   ['onuserlogoff',['onUserLogOff',['../classPyNAO.html#ab7f2071168f860fce1c1337d020dc97d',1,'PyNAO']]],
