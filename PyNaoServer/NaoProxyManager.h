@@ -87,7 +87,7 @@ public:
   
   void setChestLED( const NAOLedColour colour );
   void pulsatingChestLED( const NAOLedColour colour1, const NAOLedColour colour2, const float period = 0.5 );
-  void continuePluseChestLED();
+  void continuePulseChestLED();
   
   void getBatteryStatus( int & percentage, bool & isplugged, bool & ischarging, bool & isdischarging );
 
