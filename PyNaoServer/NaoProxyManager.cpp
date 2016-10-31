@@ -47,7 +47,7 @@ NaoProxyManager * NaoProxyManager::s_pNaoProxyManager = NULL;
 
 void * pulse_thread( void * controller )
 {
-  ((NaoProxyManager *)controller)->continuePluseChestLED();
+  ((NaoProxyManager *)controller)->continuePulseChestLED();
   return NULL;
 }
 
@@ -824,7 +824,7 @@ void NaoProxyManager::fini()
 }
 
 // helper function
-void NaoProxyManager::continuePluseChestLED()
+void NaoProxyManager::continuePulseChestLED()
 {
   fd_set dummyFDSet;
   struct timeval timeout;

@@ -1251,7 +1251,7 @@ static PyObject * PyModule_NaoSSetChestLED( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn pluseChestLED(colour_one, colour_two, period)
+/*! \fn pulseChestLED(colour_one, colour_two, period)
  *  \memberof PyNAO
  *  \brief Periodically switch NAO's chest LED between the two input colours.
  *  \param str colour_one. Colour label one.
@@ -1260,7 +1260,7 @@ static PyObject * PyModule_NaoSSetChestLED( PyObject * self, PyObject * args )
  *  \return None.
  *  \note Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'.
  */
-static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
+static PyObject * PyModule_NaoPulseChestLED( PyObject * self, PyObject * args )
 {
   char * colourStr1 = NULL;
   char * colourStr2 = NULL;
@@ -1274,18 +1274,25 @@ static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
     return NULL;
   }
   if (!colourStr2ID( colourStr1, colourID1 ) || !colourStr2ID( colourStr2, colourID2 )) {
-    PyErr_Format( PyExc_ValueError, "PyNAO.pluseChestLED: invalid input colour(s)."
+    PyErr_Format( PyExc_ValueError, "PyNAO.pulseChestLED: invalid input colour(s)."
                  "Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'." );
     return NULL;
   }
 
   if (period <= 0.0) {
-    PyErr_Format( PyExc_ValueError, "PyNAO.pluseChestLED: invalid pluse period." );
+    PyErr_Format( PyExc_ValueError, "PyNAO.pulseChestLED: invalid pulse period." );
     return NULL;
   }
 
   NaoProxyManager::instance()->pulsatingChestLED( colourID1, colourID2, period );
   Py_RETURN_NONE;
+}
+
+// Deprecation warning call
+static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
+{
+  PyErr_Format( PyExc_ValueError, "PyNAO.pulseChestLED: Deprecation warning! Substitute your pluseChestLED calls for pulseChestLED." );
+  return PyModule_NaoPulseChestLED(self, args);
 }
 
 /*! \fn getBatteryStatus()
@@ -1395,7 +1402,9 @@ static PyMethodDef PyModule_methods[] = {
   { "setChestLED", (PyCFunction)PyModule_NaoSSetChestLED, METH_VARARGS,
     "Set the colour of the chest LEDs on NAO." },
   { "pluseChestLED", (PyCFunction)PyModule_NaoPluseChestLED, METH_VARARGS,
-    "Pluse the chest LED of NAO between two colours." },
+    "Deprecated, use pulseChestLED." },
+  { "pulseChestLED", (PyCFunction)PyModule_NaoPulseChestLED, METH_VARARGS,
+    "Pulse the chest LED of NAO between two colours." },
   { "getBatteryStatus", (PyCFunction)PyModule_NaoGetBatteryStatus, METH_NOARGS,
     "Get the current battery status." },
 #define DEFINE_COMMON_PYMODULE_METHODS

@@ -13,7 +13,7 @@ def updateStatus( state, negate ):
 
   #set chest LED
   if status & constants.NEW_MESSAGES:
-    PyNAO.pluseChestLED( 'red', 'white', 0.5 )
+    PyNAO.pulseChestLED( 'red', 'white', 0.5 )
   elif status & constants.ARCHIVE_MESSAGES:
     if status & constants.USER_PRESENT:
       PyNAO.setChestLED( 'pink' )
