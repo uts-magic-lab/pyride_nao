@@ -66,6 +66,21 @@ enum { // standard configuration for NAO V4/V5.
   R_HAND
 };
 
+struct BezierParam
+{
+  int type;
+  float dtime;
+  float dangle;
+  BezierParam() { type = -1; dtime = dangle = 0.0; };
+};
+
+typedef struct
+{
+  float angle;
+  struct BezierParam bparam1;
+  struct BezierParam bparam2;
+} AngleControlPoint;
+
 class NaoProxyManager
 {
 public:
@@ -110,7 +125,7 @@ public:
   bool moveArmWithJointPos( bool isLeft, const std::vector<float> & positions,
                             float frac_speed = 0.5, bool inpost = false );
   
-  void moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
+  bool moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
                                                    std::vector<float> & times_to_reach, bool inpost = false );
 
   bool moveLegWithJointPos( bool isLeft, const std::vector<float> & positions,
@@ -118,6 +133,9 @@ public:
 
   bool moveBodyWithJointPos( const std::vector<float> & positions,
                             float frac_speed = 0.5 );
+
+  bool moveBodyWithRawTrajectoryData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
+                                                   std::vector< std::vector<float> > & time_stamps, bool isBezier, bool inpost = false );
 
   bool setHandPosition( bool isLeft, float openRatio, bool keepStiff );
 
