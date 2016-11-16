@@ -93,9 +93,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae0e1ca758698cef8f8f8d24e325e4c40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#ae0e1ca758698cef8f8f8d24e325e4c40">moveHeadTo</a> (head_yaw, head_pitch, is_absolute)</td></tr>
-<tr class="memdesc:ae0e1ca758698cef8f8f8d24e325e4c40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the NAO head to a specific yaw and pitch position. This new position could be either absolute head position or a relative position w.r.t the current head position.  <a href="#ae0e1ca758698cef8f8f8d24e325e4c40">More...</a><br/></td></tr>
-<tr class="separator:ae0e1ca758698cef8f8f8d24e325e4c40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd0afd54a46ae509c0ae03e8fbb85166"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#afd0afd54a46ae509c0ae03e8fbb85166">moveHeadTo</a> (head_yaw, head_pitch, relative, frac_speed)</td></tr>
+<tr class="memdesc:afd0afd54a46ae509c0ae03e8fbb85166"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the NAO head to a specific yaw and pitch position. This new position could be either absolute head position or a relative position w.r.t the current head position.  <a href="#afd0afd54a46ae509c0ae03e8fbb85166">More...</a><br/></td></tr>
+<tr class="separator:afd0afd54a46ae509c0ae03e8fbb85166"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a988edb299af76f71521cce7109c98b09"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a988edb299af76f71521cce7109c98b09">sit</a> (is_relax)</td></tr>
 <tr class="memdesc:a988edb299af76f71521cce7109c98b09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the robot into a sitting pose.  <a href="#a988edb299af76f71521cce7109c98b09">More...</a><br/></td></tr>
 <tr class="separator:a988edb299af76f71521cce7109c98b09"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,6 +135,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4bb71603b06d25552d29e67f6e7d83f9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a4bb71603b06d25552d29e67f6e7d83f9">moveBodyWithJointPos</a> (joint_position, frac_max_speed)</td></tr>
 <tr class="memdesc:a4bb71603b06d25552d29e67f6e7d83f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the NAO body joints to the specified joint position within a time frame.  <a href="#a4bb71603b06d25552d29e67f6e7d83f9">More...</a><br/></td></tr>
 <tr class="separator:a4bb71603b06d25552d29e67f6e7d83f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24725a18da66b5808b0bb4612794e37d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a24725a18da66b5808b0bb4612794e37d">moveBodyWithRawTrajectoryData</a> (joint_trajectory_data)</td></tr>
+<tr class="memdesc:a24725a18da66b5808b0bb4612794e37d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the NAO body joints in specified trajectories.  <a href="#a24725a18da66b5808b0bb4612794e37d">More...</a><br/></td></tr>
+<tr class="separator:a24725a18da66b5808b0bb4612794e37d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad34ee9430b52db397f40faaeb1614c8a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#ad34ee9430b52db397f40faaeb1614c8a">getArmJointPositions</a> (left_arm)</td></tr>
 <tr class="memdesc:ad34ee9430b52db397f40faaeb1614c8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current joint positions of one of the NAO arm.  <a href="#ad34ee9430b52db397f40faaeb1614c8a">More...</a><br/></td></tr>
 <tr class="separator:ad34ee9430b52db397f40faaeb1614c8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -210,9 +213,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0bee264da2d67b37fa9f75dfca7aae30"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a0bee264da2d67b37fa9f75dfca7aae30">setChestLED</a> (colour)</td></tr>
 <tr class="memdesc:a0bee264da2d67b37fa9f75dfca7aae30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set NAO's chest LED to a colour.  <a href="#a0bee264da2d67b37fa9f75dfca7aae30">More...</a><br/></td></tr>
 <tr class="separator:a0bee264da2d67b37fa9f75dfca7aae30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d67758b31f62515920f608152c8dcd4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#a6d67758b31f62515920f608152c8dcd4">pluseChestLED</a> (colour_one, colour_two, period)</td></tr>
-<tr class="memdesc:a6d67758b31f62515920f608152c8dcd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Periodically switch NAO's chest LED between the two input colours.  <a href="#a6d67758b31f62515920f608152c8dcd4">More...</a><br/></td></tr>
-<tr class="separator:a6d67758b31f62515920f608152c8dcd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab58a7cab94f9cdc8898c4c3482462a8e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#ab58a7cab94f9cdc8898c4c3482462a8e">pulseChestLED</a> (colour_one, colour_two, period)</td></tr>
+<tr class="memdesc:ab58a7cab94f9cdc8898c4c3482462a8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Periodically switch NAO's chest LED between the two input colours.  <a href="#ab58a7cab94f9cdc8898c4c3482462a8e">More...</a><br/></td></tr>
+<tr class="separator:ab58a7cab94f9cdc8898c4c3482462a8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acdfa8d305b9a6eb75886110fbe4140d1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPyNAO.html#acdfa8d305b9a6eb75886110fbe4140d1">getBatteryStatus</a> ()</td></tr>
 <tr class="memdesc:acdfa8d305b9a6eb75886110fbe4140d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the current robot battery status.  <a href="#acdfa8d305b9a6eb75886110fbe4140d1">More...</a><br/></td></tr>
 <tr class="separator:acdfa8d305b9a6eb75886110fbe4140d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -828,7 +831,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>bool. True == valid command; False == invalid command. </dd></dl>
 
 </div>
 </div>
@@ -864,7 +867,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>bool. True == valid command; False == invalid command. </dd></dl>
 
 </div>
 </div>
@@ -957,11 +960,37 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>bool. True == valid command; False == invalid command. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ae0e1ca758698cef8f8f8d24e325e4c40"></a>
+<a class="anchor" id="a24725a18da66b5808b0bb4612794e37d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">moveBodyWithRawTrajectoryData </td>
+          <td>(</td>
+          <td class="paramtype">joint_trajectory_data&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Move the NAO body joints in specified trajectories. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dict</td><td>joint_trajectory_data. A dictionary of {joints, keyframes, timestamps, is_blocking} where joints is a list of joint names that are factory defined, keyframes is a list of corresponding joint values (trajectory) for each joint specified in joints; timestamps is a list of corresponding time to reach values for the keyframes for each joint specified in joints; is_blocking is a boolean for whether the call is blocking. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>bool. True == valid command; False == invalid command. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>This method is not for general use. You need to know what you are doing. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="afd0afd54a46ae509c0ae03e8fbb85166"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -980,7 +1009,13 @@ Public Member Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">is_absolute&#160;</td>
+          <td class="paramtype">relative&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">frac_speed&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
@@ -996,11 +1031,14 @@ Public Member Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">float</td><td>head_yaw. Must be in radian. </td></tr>
     <tr><td class="paramname">float</td><td>head_pitch. Must be in radian. </td></tr>
-    <tr><td class="paramname">bool</td><td>is_absolute. Optional. True = inputs represent absolute value for the new head position; False = inputs represent relative head position w.r.t. to the current head position. </td></tr>
+    <tr><td class="paramname">bool</td><td>relative. True == relative angle values; False == absolute angle values. Optional, default is False. </td></tr>
+    <tr><td class="paramname">float</td><td>frac_speed. Fraction of the maximum speed, i.e. within (0..1] Optional, default = 0.05. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>bool. True == valid command; False == invalid command. </dd>
+<dd>
+None. </dd></dl>
 
 </div>
 </div>
@@ -1036,7 +1074,7 @@ Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>None. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>bool. True == valid command; False == invalid command. </dd></dl>
 
 </div>
 </div>
@@ -1552,12 +1590,12 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a6d67758b31f62515920f608152c8dcd4"></a>
+<a class="anchor" id="ab58a7cab94f9cdc8898c4c3482462a8e"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">pluseChestLED </td>
+          <td class="memname">pulseChestLED </td>
           <td>(</td>
           <td class="paramtype">colour_one&#160;</td>
           <td class="paramname">, </td>
@@ -2167,7 +2205,7 @@ Public Member Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Oct 27 2016 12:59:54 for PyRIDE by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Nov 16 2016 12:53:52 for PyRIDE by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>
