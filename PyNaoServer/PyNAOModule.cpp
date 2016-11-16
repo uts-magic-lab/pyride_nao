@@ -200,28 +200,37 @@ static PyObject * PyModule_NaoSayWithVolume( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn moveHeadTo(head_yaw, head_pitch,is_absolute)
+/*! \fn moveHeadTo(head_yaw, head_pitch, relative, frac_speed)
  *  \memberof PyNAO
- *  \brief Move the NAO head to a specific yaw and pitch position. This new position could be either absolute head position or a relative position w.r.t the current head position.
+ *  \brief Move the NAO head to a specific yaw and pitch position. This new
+ *  position could be either absolute head position or a relative position w.r.t the current head position.
  *  \param float head_yaw. Must be in radian.
  *  \param float head_pitch. Must be in radian.
- *  \param bool is_absolute. Optional. True = inputs represent absolute value for the new head position; False = inputs represent relative head position w.r.t. to the current head position.
- *  \return None.
+ *  \param bool relative. True == relative angle values; False == absolute angle values. Optional, default is False.
+ *  \param float frac_speed. Fraction of the maximum speed, i.e. within (0..1] Optional, default = 0.05.
+ *  \return bool. True == valid command; False == invalid command.
+*  \return None.
  */
 static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
 {
   float yaw = 0.0;
   float pitch = 0.0;
-  bool absolute = false;
+  float frac_speed = 0.05;
+  bool isRelative = false;
   PyObject * isYesObj = NULL;
 
-  if (!PyArg_ParseTuple( args, "ff|O", &yaw, &pitch, &isYesObj )) {
+  if (!PyArg_ParseTuple( args, "ff|Of", &yaw, &pitch, &isYesObj, &frac_speed )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
+  if (frac_speed <= 0 || frac_speed > 1.0) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.moveHeadTo: frac_speed must be within (0..1]." );
+    return NULL;
+  }
+
   if (isYesObj) {
     if (PyBool_Check( isYesObj )) {
-      absolute = PyObject_IsTrue( isYesObj );
+      isRelative = PyObject_IsTrue( isYesObj );
     }
     else {
       PyErr_Format( PyExc_ValueError, "PyNAO.moveHeadTo: the third optional parameter must be a boolean!" );
@@ -229,7 +238,7 @@ static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
     }
   }
 
-  NaoProxyManager::instance()->moveHeadTo( yaw, pitch, absolute );
+  NaoProxyManager::instance()->moveHeadTo( yaw, pitch, isRelative, frac_speed );
   Py_RETURN_NONE;
 }
 
