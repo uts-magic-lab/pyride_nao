@@ -131,12 +131,24 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
   }
   
   try {
+    behaviourManagerProxy_ = boost::shared_ptr<ALBehaviorManagerProxy>(new ALBehaviorManagerProxy( broker ));
+  }
+  catch (const ALError& e) {
+    ERROR_MSG( "PyNaoServer: Could not create a proxy to ALBehaviourManager.\n");
+    behaviourManagerProxy_.reset();
+  }
+  if (behaviourManagerProxy_) {
+    INFO_MSG( "Nao ALBehaviourManager are successfully initialised.\n" );
+  }
+
+  try {
     motionProxy_ = boost::shared_ptr<ALMotionProxy>(new ALMotionProxy( broker ));
   }
   catch (const ALError& e) {
     ERROR_MSG( "PyNaoServer: Could not create a proxy to ALMotion.\n");
     motionProxy_.reset();
   }
+  
   if (motionProxy_) {
     moveInitialised_ = false;
     AL::ALValue joints; // make sure we get joint limits in correct order
@@ -766,10 +778,71 @@ void NaoProxyManager::pauseAudioID( const int audioID )
     audioPlayerProxy_->post.pause( audioID );
   }
 }
+
 void NaoProxyManager::stopAllAudio()
 {
   if (audioPlayerProxy_) {
     audioPlayerProxy_->post.stopAll();
+  }
+}
+
+bool NaoProxyManager::startBehaviour( const std::string & behaviour )
+{
+  if (!behaviourManagerProxy_)
+    return false;
+  
+  try {
+    behaviourManagerProxy_->startBehavior( behaviour );
+  }
+  catch (const ALError& e) {
+    ERROR_MSG( "Unable to start behaviour %s.\n", behaviour.c_str() );
+    return false;
+  }
+  return true;
+}
+
+bool NaoProxyManager::runBehaviour( const std::string & behaviour, bool inpost )
+{
+  if (!behaviourManagerProxy_)
+    return false;
+    
+  try {
+    if (inpost) {
+      behaviourManagerProxy_->post.runBehavior( behaviour );
+    }
+    else {
+      behaviourManagerProxy_->runBehavior( behaviour );
+    }
+  }
+  catch (const ALError& e) {
+    ERROR_MSG( "Unable to run behaviour %s.\n", behaviour.c_str() );
+    return false;
+  }
+
+  return true;
+}
+
+void NaoProxyManager::stopBehaviour( const std::string & behaviour )
+{
+  if (behaviourManagerProxy_) {
+    try {
+      behaviourManagerProxy_->stopBehavior( behaviour );
+    }
+    catch (const ALError& e) {
+      ERROR_MSG( "Unable to stop behaviour %s.\n", behaviour.c_str() );
+    }
+  }
+}
+
+void NaoProxyManager::stopAllBehaviours()
+{
+  if (behaviourManagerProxy_) {
+    try {
+      behaviourManagerProxy_->stopAllBehaviors();
+    }
+    catch (const ALError& e) {
+      ERROR_MSG( "Unable to stop all behaviours.\n" );
+    }
   }
 }
 

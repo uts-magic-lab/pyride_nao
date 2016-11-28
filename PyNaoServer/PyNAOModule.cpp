@@ -1428,6 +1428,97 @@ static PyObject * PyModule_NaoStopAllAudio( PyObject * self )
   Py_RETURN_NONE;
 }
 
+/*! \fn startBehaviour(name)
+ *  \memberof PyNAO
+ *  \brief Start playing a behaviour.
+ *  \param str name. The name of the behaviour.
+ *  \return bool. True == valid command; False == invalid command.
+ */
+/**@}*/
+static PyObject * PyModule_NaoStartBehaviour( PyObject * self, PyObject * args )
+{
+  char * name = NULL;
+  
+  if (!PyArg_ParseTuple( args, "s", &name )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+  
+  if (NaoProxyManager::instance()->startBehaviour( name )) {
+    Py_RETURN_TRUE;
+  }
+  else {
+    Py_RETURN_FALSE;
+  }
+}
+
+/*! \fn runBehaviour(name, is_blocking)
+ *  \memberof PyNAO
+ *  \brief Run a behaviour.
+ *  \param str name. The name of the behaviour.
+ *  \param bool is_blocking. Optional, True = blocking call, False = non blocking. Default: False.
+ *  \return bool. True == valid command; False == invalid command.
+ */
+/**@}*/
+static PyObject * PyModule_NaoRunBehaviour( PyObject * self, PyObject * args )
+{
+  char * name = NULL;
+  bool inpost = true;
+  PyObject * boolObj = NULL;
+  
+  if (!PyArg_ParseTuple( args, "s|O", &name, boolObj )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+  
+  if (boolObj) {
+    if (!PyBool_Check( boolObj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.runBehaviour: last optional input parameter must be a boolean!" );
+      return NULL;
+    }
+    inpost = !PyObject_IsTrue( boolObj );
+  }
+  
+  if (NaoProxyManager::instance()->runBehaviour( name, inpost )) {
+    Py_RETURN_TRUE;
+  }
+  else {
+    Py_RETURN_FALSE;
+  }
+}
+
+/*! \fn stopBehaviour(name)
+ *  \memberof PyNAO
+ *  \brief Stop a currently playing behaviours.
+ *  \param str name. The name of the behaviour.
+ *  \return None.
+ */
+/**@}*/
+static PyObject * PyModule_NaoStopBehaviour( PyObject * self, PyObject * args )
+{
+  char * name = NULL;
+  
+  if (!PyArg_ParseTuple( args, "s", &name )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+  
+  NaoProxyManager::instance()->stopBehaviour( name );
+  Py_RETURN_NONE;
+}
+
+/*! \fn stopAllBehaviours()
+ *  \memberof PyNAO
+ *  \brief Stop all playing behaviours.
+ *  \return None.
+ */
+/**@}*/
+static PyObject * PyModule_NaoStopAllBehaviours( PyObject * self )
+{
+  NaoProxyManager::instance()->stopAllBehaviours();
+  Py_RETURN_NONE;
+}
+
 /** @name Miscellaneous Functions
  *
  */
@@ -1607,7 +1698,15 @@ static PyMethodDef PyModule_methods[] = {
   { "pauseAudioID", (PyCFunction)PyModule_NaoPauseAudioID, METH_VARARGS,
     "Pause a playing audio file." },
   { "stopAllAudio", (PyCFunction)PyModule_NaoStopAllAudio, METH_NOARGS,
-    "Stop playing all audio on NAO." },
+    "Stop playing all audios on NAO." },
+  { "startBehaviour", (PyCFunction)PyModule_NaoStartBehaviour, METH_VARARGS,
+    "Start playing a behaviour on NAO. Parameter: string name of the behaviour." },
+  { "runBehaviour", (PyCFunction)PyModule_NaoRunBehaviour, METH_VARARGS,
+    "Run a behaviour on NAO. Parameter: string name of the behaviour, optional boolean. True = blocking call, False = blocking. Default: False." },
+  { "stopBehaviour", (PyCFunction)PyModule_NaoStopBehaviour, METH_VARARGS,
+    "Stop a current playing behaviour on NAO. Parameter: string name of the behaviour." },
+  { "stopAllBehaviours", (PyCFunction)PyModule_NaoStopAllBehaviours, METH_NOARGS,
+    "Stop all playing behaviours on NAO." },
   { "setChestLED", (PyCFunction)PyModule_NaoSSetChestLED, METH_VARARGS,
     "Set the colour of the chest LEDs on NAO. Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'" },
   { "pluseChestLED", (PyCFunction)PyModule_NaoPluseChestLED, METH_VARARGS,

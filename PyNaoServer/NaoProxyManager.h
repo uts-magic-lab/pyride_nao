@@ -22,6 +22,7 @@
 #include <alproxies/alledsproxy.h>
 #include <alproxies/alrobotpostureproxy.h>
 #include <alproxies/almemoryproxy.h>
+#include <alproxies/albehaviormanagerproxy.h>
 
 namespace pyride {
 
@@ -148,6 +149,11 @@ public:
 
   void updateBodyPose( const RobotPose & pose );
   
+  bool startBehaviour( const std::string & behaviour );
+  bool runBehaviour( const std::string & behaviour, bool inpost = false );
+  void stopBehaviour( const std::string & behavour );
+  void stopAllBehaviours();
+  
   void timeoutCheck();
 
   void cancelBodyMovement();
@@ -164,7 +170,7 @@ private:
   boost::shared_ptr<ALAudioPlayerProxy> audioPlayerProxy_;
   boost::shared_ptr<ALAudioDeviceProxy> audioDeviceProxy_;
   boost::shared_ptr<ALMemoryProxy> memoryProxy_;
-  
+  boost::shared_ptr<ALBehaviorManagerProxy> behaviourManagerProxy_;
   //motion related data
   ALValue jointLimits_;
 
