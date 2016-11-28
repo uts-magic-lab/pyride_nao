@@ -226,7 +226,7 @@ bool NaoProxyManager::getHeadPos( float & yaw, float & pitch )
   return false;
 }
   
-void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absolute )
+void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relative, float frac_speed )
 {
   if (motionProxy_) {
     AL::ALValue names = "Head";
@@ -235,11 +235,7 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absol
 
     newHeadPos.arraySetSize( 2 );
 
-    if (absolute) {
-      newHeadPos[0] = clamp( yaw, HEAD_YAW );
-      newHeadPos[1] = clamp( pitch, HEAD_PITCH );
-    }
-    else {
+    if (relative) {
       std::vector<float> curHeadPos;
       
       curHeadPos = motionProxy_->getAngles( names, true );
@@ -247,10 +243,14 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absol
       newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
       newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
     }
+    else {
+      newHeadPos[0] = clamp( yaw, HEAD_YAW );
+      newHeadPos[1] = clamp( pitch, HEAD_PITCH );
+    }
     motionProxy_->setStiffnesses( names, stiff );
 
     try { 
-      motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, 0.05 );
+      motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, frac_speed );
     }
     catch (...) {
       ERROR_MSG( "Unable to set angle interpolation to %s", newHeadPos.toString().c_str() );

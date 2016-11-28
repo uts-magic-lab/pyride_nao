@@ -108,7 +108,7 @@ public:
   void getBatteryStatus( int & percentage, bool & isplugged, bool & ischarging, bool & isdischarging );
 
   bool getHeadPos( float & yaw, float & pitch );
-  void moveHeadTo( const float yaw, const float pitch, bool absolute = false );
+  void moveHeadTo( const float yaw, const float pitch, bool relative = false, float frac_speed = 0.05 );
   void updateHeadPos( const float yaw, const float pitch, const float speed = 0.1 );
 
   void getBodyJointsPos( std::vector<float> & positions,
