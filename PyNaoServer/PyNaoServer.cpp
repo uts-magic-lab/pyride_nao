@@ -438,7 +438,7 @@ bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command,
       float newHeadPitch = *((float *)optionalData+1);
       newHeadYaw = newHeadYaw * kHFOV * kDegreeToRAD;
       newHeadPitch = newHeadPitch * kVFOV * kDegreeToRAD;
-      NaoProxyManager::instance()->moveHeadTo( newHeadYaw, newHeadPitch );
+      NaoProxyManager::instance()->moveHeadTo( newHeadYaw, newHeadPitch, true );
       NaoProxyManager::instance()->setHeadStiffness( 0.0 );
     }
       break;
