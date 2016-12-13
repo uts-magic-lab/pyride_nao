@@ -212,6 +212,7 @@ bool PyNaoServer::initDevice()
   clientNo_ = 0;
   isStreaming_ = false;
   isInitialised_ = true;
+  aSettings_.reserved = (char)audioDevice->call<int>( "getOutputVolume" );
   INFO_MSG( "Nao audio device is successfully initialised.\n" );
   return isInitialised_;
 
@@ -449,6 +450,14 @@ bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command,
       NaoProxyManager::instance()->updateBodyPose( newPose );
     }
       break;
+    case UPDATE_AUDIO_SETTINGS:
+    {
+      unsigned char * dataPtr = (unsigned char *)optionalData;
+      int volume;
+      memcpy( &volume, dataPtr, sizeof( int ) );
+      NaoProxyManager::instance()->setAudioVolume( volume );
+    }
+      break;    
     default:
       status = false;
       break;

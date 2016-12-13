@@ -846,6 +846,20 @@ void NaoProxyManager::stopAllBehaviours()
   }
 }
 
+std::vector<std::string> NaoProxyManager::getBehaviourList( bool installed )
+{
+  std::vector<std::string> list;
+  if (behaviourManagerProxy_) {
+    if (installed) {
+      return behaviourManagerProxy_->getInstalledBehaviors();
+    }
+    else {
+      return behaviourManagerProxy_->getLoadedBehaviors();
+    }
+  }
+  return list;
+}
+
 void NaoProxyManager::setChestLED( const NAOLedColour colour )
 {
   if (ledProxy_) {

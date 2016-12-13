@@ -154,6 +154,8 @@ public:
   void stopBehaviour( const std::string & behavour );
   void stopAllBehaviours();
   
+  std::vector<std::string> getBehaviourList( bool installed = false );
+
   void timeoutCheck();
 
   void cancelBodyMovement();

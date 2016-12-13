@@ -1528,6 +1528,40 @@ static PyObject * PyModule_NaoStopAllBehaviours( PyObject * self )
   Py_RETURN_NONE;
 }
 
+/*! \fn getBehaviourList(installed)
+ *  \memberof PyNAO
+ *  \brief Return a list of loaded (or installed) default behaviours on NAO.
+ *  \param bool installed. Optional. True = Installed behaviours; False = Loaded behaviours. Default: False
+ *  \return None.
+ */
+static PyObject * PyModule_NaoGetBehaviourList( PyObject * self, PyObject * args )
+{
+  PyObject * isYesObj = NULL;
+  bool isYes = false;
+
+  if (!PyArg_ParseTuple( args, "|O", &isYesObj )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+  if (isYesObj) {
+    if (PyBool_Check( isYesObj )) {
+      isYes = PyObject_IsTrue( isYesObj );
+    }
+    else {
+      PyErr_Format( PyExc_ValueError, "PyNAO.getBehavourList: the parameter must be a boolean!" );
+      return NULL;
+    }
+  }
+  std::vector<std::string> list = NaoProxyManager::instance()->getBehaviourList( isYes );
+  size_t list_size = list.size();
+  PyObject * retObj = PyList_New( list_size );
+  for (size_t i = 0; i < list_size; i++) {
+    PyObject * strObj = PyString_FromString( list.at( i ).c_str() );
+    PyList_SetItem( retObj, i, strObj );
+  }
+  return retObj;
+}
+
 /** @name Miscellaneous Functions
  *
  */
@@ -1716,6 +1750,8 @@ static PyMethodDef PyModule_methods[] = {
     "Stop a current playing behaviour on NAO. Parameter: string name of the behaviour." },
   { "stopAllBehaviours", (PyCFunction)PyModule_NaoStopAllBehaviours, METH_NOARGS,
     "Stop all playing behaviours on NAO." },
+  { "getBehaviourList", (PyCFunction)PyModule_NaoGetBehaviourList, METH_VARARGS,
+    "Get a list of loaded (or installed) behaviours on NAO." },
   { "setChestLED", (PyCFunction)PyModule_NaoSSetChestLED, METH_VARARGS,
     "Set the colour of the chest LEDs on NAO. Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'" },
   { "pluseChestLED", (PyCFunction)PyModule_NaoPluseChestLED, METH_VARARGS,
