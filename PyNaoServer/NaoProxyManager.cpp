@@ -18,7 +18,7 @@ NaoProxyManager * NaoProxyManager::s_pNaoProxyManager = NULL;
 
 void * pulse_thread( void * controller )
 {
-  ((NaoProxyManager *)controller)->continuePluseChestLED();
+  ((NaoProxyManager *)controller)->continuePulseChestLED();
   return NULL;
 }
 
@@ -181,7 +181,7 @@ bool NaoProxyManager::getHeadPos( float & yaw, float & pitch )
   return false;
 }
   
-void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absolute )
+void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relative, float frac_speed )
 {
   if (motionProxy_) {
     AL::ALValue names = "Head";
@@ -190,11 +190,7 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absol
 
     newHeadPos.arraySetSize( 2 );
 
-    if (absolute) {
-      newHeadPos[0] = clamp( yaw, HEAD_YAW );
-      newHeadPos[1] = clamp( pitch, HEAD_PITCH );
-    }
-    else {
+    if (relative) {
       std::vector<float> curHeadPos;
       
       curHeadPos = motionProxy_->getAngles( names, true );
@@ -202,10 +198,14 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool absol
       newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
       newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
     }
+    else {
+      newHeadPos[0] = clamp( yaw, HEAD_YAW );
+      newHeadPos[1] = clamp( pitch, HEAD_PITCH );
+    }
     motionProxy_->setStiffnesses( names, stiff );
 
     try { 
-      motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, 0.05 );
+      motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, frac_speed );
     }
     catch (...) {
       ERROR_MSG( "Unable to set angle interpolation to %s", newHeadPos.toString().c_str() );
@@ -390,7 +390,8 @@ void NaoProxyManager::setLegStiffness( bool isLeft, const float stiff )
   }
 }
 
-bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<float> & positions, float frac_speed )
+bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<float> & positions,
+                                           float frac_speed, bool inpost )
 {
   if (!motionProxy_)
     return false;
@@ -419,7 +420,10 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
     angles[i] = clamp( positions[i], (isLeftArm ? L_SHOULDER_PITCH + i : R_SHOULDER_PITCH + i) );
   }
   try {
-    motionProxy_->setAngles( names, angles, frac_speed );
+    if (inpost)
+      motionProxy_->setAngles( names, angles, frac_speed );
+    else
+      motionProxy_->angleInterpolationWithSpeed( names, angles, frac_speed );
   }
   catch (...) {
     ERROR_MSG( "Unable to set angle to %s", angles.toString().c_str() );
@@ -428,16 +432,16 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
   return true;
 }
 
-void NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
+bool NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
                                                  std::vector<float> & times_to_reach, bool inpost )
 {
   if (!motionProxy_)
-    return;
+    return false;
   
   size_t traj_size = trajectory.size();
   
   if (traj_size <=0 || traj_size != times_to_reach.size())
-    return;
+    return false;
 
   //AL::ALValue names = isLeftArm ? "LArm" : "RArm";
   AL::ALValue names = isLeftArm ? AL::ALValue::array( "LShoulderPitch",
@@ -483,7 +487,9 @@ void NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< s
   }
   catch (...) {
     ERROR_MSG( "Unable to set angle interpolation to %s", joints.toString().c_str() );
+    return false;
   }
+  return true;
 }
 
 bool NaoProxyManager::moveLegWithJointPos( bool isLeft, const std::vector<float> & positions, float frac_speed )
@@ -540,6 +546,59 @@ bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions
     return false;
   }
   return true;  
+}
+
+bool NaoProxyManager::moveBodyWithRawTrajectoryData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
+                                                 std::vector< std::vector<float> > & time_stamps, bool isBezier, bool inpost )
+{
+  // minimal check in this method. Use under you own risk!
+  // TODO: this is a silly wrapper function. Should just do a simple cast.
+  size_t joint_size = joint_names.size();
+  if (joint_size != key_frames.size() || joint_size != time_stamps.size()) {
+    ERROR_MSG( "Inconsistent trajectory data specification." );
+    return false;
+  }
+
+  AL::ALValue keys;
+  AL::ALValue times;
+
+  keys.arraySetSize( joint_size );
+  times.arraySetSize( joint_size );
+
+  for (int i = 0; i < joint_size; i++) {
+    int key_size = key_frames[i].size();
+    int ts_size = time_stamps[i].size();
+
+    keys[i].arraySetSize( key_size );
+    for (int j = 0; j < key_size; ++j) {
+      if (isBezier) {
+        keys[i][j] = AL::ALValue::array( key_frames[i][j].angle, AL::ALValue::array( key_frames[i][j].bparam1.type,
+            key_frames[i][j].bparam1.dtime, key_frames[i][j].bparam1.dangle ), AL::ALValue::array( key_frames[i][j].bparam2.type,
+                key_frames[i][j].bparam2.dtime, key_frames[i][j].bparam2.dangle ) );
+      }
+      else {
+        keys[i][j] = key_frames[i][j].angle;
+      }
+    }
+    times[i].arraySetSize( ts_size );
+    for (int j = 0; j < ts_size; ++j) {
+      times[i][j] = time_stamps[i][j];
+    }
+  }
+
+  motionProxy_->setStiffnesses( "Body", 1.0 );
+
+  try {
+    if (inpost)
+      motionProxy_->post.angleInterpolationBezier( joint_names, times, keys );
+    else
+      motionProxy_->angleInterpolationBezier( joint_names, times, keys );
+  }
+  catch (...) {
+    ERROR_MSG( "Unable to move joints in specified raw trajectories." );
+    return false;
+  }
+  return true;
 }
 
 int NaoProxyManager::loadAudioFile( const std::string & text )
@@ -727,7 +786,7 @@ void NaoProxyManager::fini()
 }
 
 // helper function
-void NaoProxyManager::continuePluseChestLED()
+void NaoProxyManager::continuePulseChestLED()
 {
   fd_set dummyFDSet;
   struct timeval timeout;

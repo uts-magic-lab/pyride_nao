@@ -62,6 +62,21 @@ enum { // we are dealing with standard soccer NAO only.
   R_ELBOW_ROLL
 };
 
+struct BezierParam
+{
+  int type;
+  float dtime;
+  float dangle;
+  BezierParam() { type = -1; dtime = dangle = 0.0; };
+};
+
+typedef struct
+{
+  float angle;
+  struct BezierParam bparam1;
+  struct BezierParam bparam2;
+} AngleControlPoint;
+
 class NaoProxyManager
 {
 public:
@@ -83,12 +98,12 @@ public:
   
   void setChestLED( const NAOLedColour colour );
   void pulsatingChestLED( const NAOLedColour colour1, const NAOLedColour colour2, const float period = 0.5 );
-  void continuePluseChestLED();
+  void continuePulseChestLED();
   
   void getBatteryStatus( int & percentage, bool & isplugged, bool & ischarging, bool & isdischarging );
 
   bool getHeadPos( float & yaw, float & pitch );
-  void moveHeadTo( const float yaw, const float pitch, bool absolute = false );
+  void moveHeadTo( const float yaw, const float pitch, bool relative = false, float frac_speed = 0.05 );
   void updateHeadPos( const float yaw, const float pitch, const float speed = 0.1 );
 
   void getBodyJointsPos( std::vector<float> & positions,
@@ -104,9 +119,9 @@ public:
   void setLegStiffness( bool isLeft, const float stiff );
 
   bool moveArmWithJointPos( bool isLeft, const std::vector<float> & positions,
-                           float frac_speed = 0.5 );
+                           float frac_speed = 0.5, bool inpost = false );
   
-  void moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
+  bool moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
                                                    std::vector<float> & times_to_reach, bool inpost = false );
 
   bool moveLegWithJointPos( bool isLeft, const std::vector<float> & positions,
@@ -115,6 +130,8 @@ public:
   bool moveBodyWithJointPos( const std::vector<float> & positions,
                             float frac_speed = 0.5 );
 
+  bool moveBodyWithRawTrajectoryData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
+                                                   std::vector< std::vector<float> > & time_stamps, bool isBezier, bool inpost = false );
   void sit( bool relax = false );
   void stand( bool init = false );
   void crouch();

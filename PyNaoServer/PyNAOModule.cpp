@@ -25,13 +25,17 @@ PyDoc_STRVAR( PyNAO_doc, \
 
 PyNAOModule * PyNAOModule::s_pyNAOModule = NULL;
 
-static const char *kLeftArmKWlist[] = { "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint", "l_elbow_roll_joint", "frac_max_speed", NULL };
-static const char *kRightArmKWlist[] = { "r_shoulder_pitch_joint", "r_shoulder_roll_joint", "r_elbow_yaw_joint", "r_elbow_roll_joint", "frac_max_speed", NULL };
+static const char *kLeftArmKWlist[] = { "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint", "l_elbow_roll_joint", "l_wrist_yaw_joint",
+    "frac_max_speed", "is_blocking", NULL };
+static const char *kRightArmKWlist[] = { "r_shoulder_pitch_joint", "r_shoulder_roll_joint", "r_elbow_yaw_joint", "r_elbow_roll_joint", "r_wrist_yaw_joint",
+"frac_max_speed", "is_blocking", NULL };
 
 static const char *kLeftLegKWlist[] = { "l_hip_yaw_pitch_joint", "l_hip_roll_joint", "l_hip_pitch_joint", "l_knee_pitch_joint", "l_ankle_pitch_joint",
     "l_ankle_roll_joint", "frac_max_speed", NULL };
 static const char *kRightLegKWlist[] = { "r_hip_yaw_pitch_joint", "r_hip_roll_joint", "r_hip_pitch_joint", "r_knee_pitch_joint", "r_ankle_pitch_joint",
     "r_ankle_roll_joint", "frac_max_speed", NULL };
+
+static const char *kBodyRawJointDataKWlist[] = { "joints", "keyframes", "timestamps", "is_blocking", NULL };
 
 static const char *kBodyKWlist[] = { "head_yaw_joint", "head_pitch_joint",
   "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint",
@@ -69,6 +73,37 @@ static bool colourStr2ID( const char * colourStr, NAOLedColour & colourID )
   }
   else if (!strcasecmp( colourStr, "blank" )) {
     colourID = BLANK;
+  }
+  else {
+    return false;
+  }
+  return true;
+}
+
+static bool parseIntFloatObj( PyObject * obj, float & number )
+{
+  if (!obj)
+    return false;
+
+  if (PyFloat_Check( obj )) {
+    number = PyFloat_AsDouble( obj );
+  }
+  else if (PyInt_Check( obj )) {
+    number = (float)PyInt_AsLong( obj );
+  }
+  else {
+    return false;
+  }
+  return true;
+}
+
+static bool parseIntObj( PyObject * obj, int & number )
+{
+  if (!obj)
+    return false;
+
+  if (PyInt_Check( obj )) {
+    number = (int)PyInt_AsLong( obj );
   }
   else {
     return false;
@@ -164,28 +199,31 @@ static PyObject * PyModule_NaoSayWithVolume( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn moveHeadTo(head_yaw, head_pitch,is_absolute)
+/*! \fn moveHeadTo(head_yaw, head_pitch, relative, frac_speed)
  *  \memberof PyNAO
- *  \brief Move the NAO head to a specific yaw and pitch position. This new position could be either absolute head position or a relative position w.r.t the current head position.
+ *  \brief Move the NAO head to a specific yaw and pitch position. This new
+ *  position could be either absolute head position or a relative position w.r.t the current head position.
  *  \param float head_yaw. Must be in radian.
  *  \param float head_pitch. Must be in radian.
- *  \param bool is_absolute. Optional. True = inputs represent absolute value for the new head position; False = inputs represent relative head position w.r.t. to the current head position.
+ *  \param bool relative. True == relative angle values; False == absolute angle values. Optional, default is False.
+ *  \param float frac_speed. Fraction of the maximum speed, i.e. within (0..1] Optional, default = 0.05.
  *  \return None.
  */
 static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
 {
   float yaw = 0.0;
   float pitch = 0.0;
-  bool absolute = false;
+  float frac_speed = 0.05;
+  bool isRelative = false;
   PyObject * isYesObj = NULL;
 
-  if (!PyArg_ParseTuple( args, "ff|O", &yaw, &pitch, &isYesObj )) {
+  if (!PyArg_ParseTuple( args, "ff|Of", &yaw, &pitch, &isYesObj, &frac_speed )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
   if (isYesObj) {
     if (PyBool_Check( isYesObj )) {
-      absolute = PyObject_IsTrue( isYesObj );
+      isRelative = PyObject_IsTrue( isYesObj );
     }
     else {
       PyErr_Format( PyExc_ValueError, "PyNAO.moveHeadTo: the third optional parameter must be a boolean!" );
@@ -193,7 +231,7 @@ static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
     }
   }
 
-  NaoProxyManager::instance()->moveHeadTo( yaw, pitch, absolute );
+  NaoProxyManager::instance()->moveHeadTo( yaw, pitch, isRelative, frac_speed );
   Py_RETURN_NONE;
 }
 
@@ -439,7 +477,7 @@ static PyObject * PyModule_NaoSetLegStiffness( PyObject * self, PyObject * args 
  *  \brief Move a NAO arm to a sequence of joint positions, i.e. trajectory.
  *  \param list joint_trajectory. A list of joint position dictionaries with the same structure of the PyNAO.moveArmWithJointPos.
  *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call.
- *  \return None.
+ *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * args )
 {
@@ -528,9 +566,10 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
     }
   }
 
-  NaoProxyManager::instance()->moveArmWithJointTrajectory( (armsel == 1), trajectory,
-                                                          times_to_reach, inpost );
-  Py_RETURN_NONE;
+  if (NaoProxyManager::instance()->moveArmWithJointTrajectory( (armsel == 1), trajectory, times_to_reach, inpost ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
 }
 
 /*! \fn moveArmWithJointPos(joint_position, frac_max_speed)
@@ -539,24 +578,26 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
  *  \param dict joint_position. A dictionary of arm joint positions in radian.
  *  The dictionary must the same structure as the return of PyNAO.getArmJointPositions.
  *  \param float frac_max_speed. Fraction of the maximum motor speed.
- *  \return None.
+ *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * args, PyObject * keywds )
 {
   float s_p_j, s_r_j, e_y_j, e_r_j;
   float frac_max_speed = 0.5;
+  PyObject * boolObj = NULL;
 
   bool isLeftArm = false;
+  bool inpost = true;
 
-  if (PyArg_ParseTupleAndKeywords( args, keywds, "ffff|f", (char**)kLeftArmKWlist,
-                                  &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed ))
+  if (PyArg_ParseTupleAndKeywords( args, keywds, "ffff|fO", (char**)kLeftArmKWlist,
+                                  &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed, &boolObj ))
   {
     isLeftArm = true;
   }
   else {
     PyErr_Clear();
-    if (!PyArg_ParseTupleAndKeywords( args, keywds, "ffff|f", (char**)kRightArmKWlist,
-                                     &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed ))
+    if (!PyArg_ParseTupleAndKeywords( args, keywds, "ffff|fO", (char**)kRightArmKWlist,
+                                     &s_p_j, &s_r_j, &e_y_j, &e_r_j, &frac_max_speed, &boolObj ))
     {
       // PyArg_ParseTuple will set the error status.
       return NULL;
@@ -568,14 +609,26 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
     return NULL;
   }
 
+  if (boolObj) {
+    if (PyBool_Check( boolObj )) {
+      inpost = !PyObject_IsTrue( boolObj );
+    }
+    else {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointPos: is_blocking parameter must be a boolean!" );
+      return NULL;
+    }
+  }
+
   std::vector<float> positions( 4, 0.0 );
   positions[0] = s_p_j;
   positions[1] = s_r_j;
   positions[2] = e_y_j;
   positions[3] = e_r_j;
 
-  NaoProxyManager::instance()->moveArmWithJointPos( isLeftArm, positions, frac_max_speed );
-  Py_RETURN_NONE;
+  if (NaoProxyManager::instance()->moveArmWithJointPos( isLeftArm, positions, frac_max_speed, inpost ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
 }
 
 /*! \fn moveLegWithJointPos(joint_position, frac_max_speed)
@@ -584,7 +637,7 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
  *  \param dict joint_position. A dictionary of leg joint positions in radian.
  *  The dictionary must the same structure as the return of PyNAO.getLegJointPositions.
  *  \param float frac_max_speed. Fraction of the maximum motor speed.
- *  \return None.
+ *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveLegWithJointPos( PyObject * self, PyObject * args, PyObject * keywds )
 {
@@ -623,8 +676,10 @@ static PyObject * PyModule_NaoMoveLegWithJointPos( PyObject * self, PyObject * a
   positions[4] = a_p_j;
   positions[5] = a_r_j;
 
-  NaoProxyManager::instance()->moveLegWithJointPos( isLeftLeg, positions, frac_max_speed );
-  Py_RETURN_NONE;
+  if (NaoProxyManager::instance()->moveLegWithJointPos( isLeftLeg, positions, frac_max_speed ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
 }
 
 /*! \fn moveBodyWithJointPos(joint_position, frac_max_speed)
@@ -633,7 +688,7 @@ static PyObject * PyModule_NaoMoveLegWithJointPos( PyObject * self, PyObject * a
  *  \param dict joint_position. A dictionary of body joint positions in radian.
  *  The dictionary must the same structure as the return of PyNAO.getBodyJointPositions.
  *  \param float frac_max_speed. Fraction of the maximum motor speed.
- *  \return None.
+ *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * args, PyObject * keywds )
 {
@@ -690,8 +745,177 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
   positions[20] = r_e_y_j;
   positions[21] = r_e_r_j;
 
-  NaoProxyManager::instance()->moveBodyWithJointPos( positions, frac_max_speed );
-  Py_RETURN_NONE;
+  if (NaoProxyManager::instance()->moveBodyWithJointPos( positions, frac_max_speed ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
+}
+
+/*! \fn moveBodyWithRawTrajectoryData(joint_trajectory_data)
+ *  \memberof PyNAO
+ *  \brief Move the NAO body joints in specified trajectories.
+ *  \param dict joint_trajectory_data. A dictionary of {joints, keyframes, timestamps, is_blocking} where
+ *  joints is a list of joint names that are factory defined, keyframes is a list of corresponding joint values (trajectory)
+ *  for each joint specified in joints; timestamps is a list of corresponding time to reach values for the keyframes
+ *  for each joint specified in joints; is_blocking is a boolean for whether the call is blocking.
+ *  \return bool. True == valid command; False == invalid command.
+ *  \warning This method is not for general use. You need to know what you are doing.
+*/
+static PyObject * PyModule_NaoMoveBodyWithRawTrajectoryData( PyObject * self, PyObject * args, PyObject * keywds )
+{
+  PyObject * jointsObj = NULL;
+  PyObject * timesObj = NULL;
+  PyObject * keyframesObj = NULL;
+  PyObject * boolObj = NULL;
+  bool inpost = false;
+  bool isbezier = false;
+
+  if (!PyArg_ParseTupleAndKeywords( args, keywds, "OOO|O",
+                                   (char**)kBodyRawJointDataKWlist, &jointsObj, &keyframesObj, &timesObj, &boolObj ))
+  {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  int listSize = 0, sublistSize = 0;
+  PyObject * obj = NULL;
+
+  if (!PyList_Check( jointsObj ) || (listSize = PyList_Size( jointsObj )) == 0) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: joint list parameter must be a non empty list of joint names defined by NAO spec!" );
+    return NULL;
+  }
+
+  if (!PyList_Check( keyframesObj ) || (PyList_Size( keyframesObj )) != listSize) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: keyframes parameter must be a list of joint values that matches with input joints!" );
+    return NULL;
+  }
+
+  if (!PyList_Check( timesObj ) || (PyList_Size( timesObj )) != listSize) {
+    PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: times parameter must be a list of timestamps that matches with input joints!" );
+    return NULL;
+  }
+
+  std::vector<std::string> joint_names;
+  for (int i = 0; i < listSize; ++i) {
+    obj = PyList_GetItem( jointsObj, i );
+    if (!PyString_Check( obj )) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d "
+                   "must be a string that corresponding to a NAO joint!", i );
+      return NULL;
+    }
+    joint_names.push_back( PyString_AsString( obj ) );
+  }
+
+  std::vector< std::vector<AngleControlPoint> > key_frames;
+  for (int i = 0; i < listSize; ++i) {
+    obj = PyList_GetItem( keyframesObj, i );
+    if (!PyList_Check( obj ) || (sublistSize = PyList_Size( obj )) == 0) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d "
+                   "must be a list of joint values for NAO joint %s!", i, joint_names[i].c_str() );
+      return NULL;
+    }
+    std::vector<AngleControlPoint> joint_values;
+    joint_values.resize( sublistSize );
+    // check the first element to determine whether the inputs are bezier control points.
+    isbezier = PyList_Check( PyList_GetItem( obj, 0 ) );
+    PyObject * jval = NULL;
+    for (int j = 0; j < sublistSize; ++j) {
+      jval = PyList_GetItem( obj, j );
+      if (isbezier) {
+        if (PyList_Check( jval ) && PyList_Size( jval ) == 3) {
+          PyObject * val0 = PyList_GetItem( jval, 0 );
+          PyObject * val1 = PyList_GetItem( jval, 1 );
+          PyObject * val2 = PyList_GetItem( jval, 2 );
+
+          if (!parseIntFloatObj( val0, joint_values[j].angle )) {
+            PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d has an"
+                         " invalid angle value in joint control point for NAO joint %s!", j, joint_names[i].c_str() );
+            return NULL;
+          }
+          if (!PyList_Check( val1 ) || PyList_Size( val1 ) != 3 ||
+              !PyList_Check( val2 ) || PyList_Size( val2 ) != 3)
+          {
+            PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d has an"
+                         " invalid bezier parameters in joint control point for NAO joint %s!", j, joint_names[i].c_str() );
+            return NULL;
+          }
+          PyObject * v0 = PyList_GetItem( val1, 0 );
+          PyObject * v1 = PyList_GetItem( val1, 1 );
+          PyObject * v2 = PyList_GetItem( val1, 2 );
+
+          if (!parseIntObj( v0, joint_values[j].bparam1.type ) ||
+              !parseIntFloatObj( v1, joint_values[j].bparam1.dtime ) ||
+              !parseIntFloatObj( v2, joint_values[j].bparam1.dangle ) )
+          {
+            PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d has an"
+                         " invalid first bezier parameter in joint control point for NAO joint %s!", j, joint_names[i].c_str() );
+            return NULL;
+          }
+          v0 = PyList_GetItem( val2, 0 );
+          v1 = PyList_GetItem( val2, 1 );
+          v2 = PyList_GetItem( val2, 2 );
+
+          if (!parseIntObj( v0, joint_values[j].bparam2.type ) ||
+              !parseIntFloatObj( v1, joint_values[j].bparam2.dtime ) ||
+              !parseIntFloatObj( v2, joint_values[j].bparam2.dangle ) )
+          {
+            PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d has an"
+                         " invalid second bezier parameter in joint control point for NAO joint %s!", j, joint_names[i].c_str() );
+            return NULL;
+          }
+        }
+        else {
+          PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d is an"
+                       " invalid joint control point for NAO joint %s!", j, joint_names[i].c_str() );
+          return NULL;
+        }
+      }
+      else {
+        if (!parseIntFloatObj( jval, joint_values[j].angle )) {
+          PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d is an"
+                       " invalid joint value for NAO joint %s!", j, joint_names[i].c_str() );
+          return NULL;
+        }
+      }
+    }
+    key_frames.push_back( joint_values );
+  }
+
+  std::vector< std::vector<float> > time_stamps;
+  for (int i = 0; i < listSize; ++i) {
+    obj = PyList_GetItem( timesObj, i );
+    if (!PyList_Check( obj ) || (sublistSize = PyList_Size( obj )) == 0) {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d "
+                   "must be a list of timestamps for NAO joint %s!", i, joint_names[i].c_str() );
+      return NULL;
+    }
+    std::vector<float> time_values( sublistSize, 0.0 );
+    PyObject * tval = NULL;
+    for (int j = 0; j < sublistSize; ++j) {
+      tval = PyList_GetItem( obj, j );
+      if (!parseIntFloatObj( tval, time_values[j] )) {
+        PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d is an"
+                     " invalid timestamp for NAO joint %s!", j, joint_names[i].c_str() );
+        return NULL;
+      }
+    }
+    time_stamps.push_back( time_values );
+  }
+
+  if (boolObj) {
+    if (PyBool_Check( boolObj )) {
+      inpost = !PyObject_IsTrue( boolObj );
+    }
+    else {
+      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: the last parameter must be a boolean!" );
+      return NULL;
+    }
+  }
+
+  if (NaoProxyManager::instance()->moveBodyWithRawTrajectoryData( joint_names, key_frames, time_stamps, isbezier, inpost ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
 }
 
 /*! \fn getArmJointPositions(left_arm)
@@ -1025,7 +1249,7 @@ static PyObject * PyModule_NaoSSetChestLED( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
-/*! \fn pluseChestLED(colour_one, colour_two, period)
+/*! \fn pulseChestLED(colour_one, colour_two, period)
  *  \memberof PyNAO
  *  \brief Periodically switch NAO's chest LED between the two input colours.
  *  \param str colour_one. Colour label one.
@@ -1034,7 +1258,7 @@ static PyObject * PyModule_NaoSSetChestLED( PyObject * self, PyObject * args )
  *  \return None.
  *  \note Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'.
  */
-static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
+static PyObject * PyModule_NaoPulseChestLED( PyObject * self, PyObject * args )
 {
   char * colourStr1 = NULL;
   char * colourStr2 = NULL;
@@ -1048,13 +1272,13 @@ static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
     return NULL;
   }
   if (!colourStr2ID( colourStr1, colourID1 ) || !colourStr2ID( colourStr2, colourID2 )) {
-    PyErr_Format( PyExc_ValueError, "PyNAO.pluseChestLED: invalid input colour(s)."
+    PyErr_Format( PyExc_ValueError, "PyNAO.pulseChestLED: invalid input colour(s)."
                  "Colour must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'." );
     return NULL;
   }
 
   if (period <= 0.0) {
-    PyErr_Format( PyExc_ValueError, "PyNAO.pluseChestLED: invalid pluse period." );
+    PyErr_Format( PyExc_ValueError, "PyNAO.pulseChestLED: invalid pulse period." );
     return NULL;
   }
 
@@ -1140,6 +1364,8 @@ static PyMethodDef PyModule_methods[] = {
     "Get joint positions of Nao's legs." },
   { "getBodyJointPositions", (PyCFunction)PyModule_NaoGetBodyJointPositions, METH_VARARGS,
     "Get full joint positions of Nao." },
+  { "moveBodyWithRawTrajectoryData", (PyCFunction)PyModule_NaoMoveBodyWithRawTrajectoryData, METH_VARARGS|METH_KEYWORDS,
+    "Move NAO all body joints in fully specified trajectories." },
   { "loadAudioFile", (PyCFunction)PyModule_NaoLoadAudioFile, METH_VARARGS,
     "Load an audio file on NAO." },
   { "unloadAudioFile", (PyCFunction)PyModule_NaoUnloadAudioFile, METH_VARARGS,
@@ -1160,8 +1386,8 @@ static PyMethodDef PyModule_methods[] = {
     "Stop playing all audio on NAO." },
   { "setChestLED", (PyCFunction)PyModule_NaoSSetChestLED, METH_VARARGS,
     "Set the colour of the chest LEDs on NAO." },
-  { "pluseChestLED", (PyCFunction)PyModule_NaoPluseChestLED, METH_VARARGS,
-    "Pluse the chest LED of NAO between two colours." },
+  { "pulseChestLED", (PyCFunction)PyModule_NaoPulseChestLED, METH_VARARGS,
+    "Pulse the chest LED of NAO between two colours." },
   { "getBatteryStatus", (PyCFunction)PyModule_NaoGetBatteryStatus, METH_NOARGS,
     "Get the current battery status." },
 #define DEFINE_COMMON_PYMODULE_METHODS
