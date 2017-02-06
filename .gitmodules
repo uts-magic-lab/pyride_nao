@@ -1,3 +1,6 @@
 [submodule "libsrc/pyridecore"]
 	path = libsrc/pyridecore
 	url = https://github.com/uts-magic-lab/pyride_core.git
+[submodule "libsrc/libjpeg"]
+	path = libsrc/libjpeg
+	url = https://github.com/kunle12/libjpeg-turbo

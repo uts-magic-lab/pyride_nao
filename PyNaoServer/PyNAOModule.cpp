@@ -1628,6 +1628,29 @@ static PyObject * PyModule_NaoPulseChestLED( PyObject * self, PyObject * args )
   Py_RETURN_NONE;
 }
 
+/*! \fn setCameraParameter(parameter_id, value)
+ *  \memberof PyNAO
+ *  \brief Set a camera parameter value.
+ *  \param int parameter_id. The integer ID of the parameter. If parameter_id is not set, this method will set all camera parameters to their default values.
+ *  \param int value. The value for the parameter. If value is not set, this method will set the specified camera parameter to its default value.
+ *  \return boolean. True == successful; otherwise failed.
+ */
+static PyObject * PyModule_NaoSetCameraParameter( PyObject * self, PyObject * args )
+{
+  int pid = -1;
+  int value = -1;
+
+  if (!PyArg_ParseTuple( args, "|ii", &pid, &value )) {
+    // PyArg_ParseTuple will set the error status.
+    return NULL;
+  }
+
+  if (ServerDataProcessor::instance()->setCameraParameter( 0, pid, value )) {
+    Py_RETURN_TRUE;
+  }
+  Py_RETURN_FALSE;
+}
+
 // Deprecation warning call
 static PyObject * PyModule_NaoPluseChestLED( PyObject * self, PyObject * args )
 {
@@ -1759,6 +1782,9 @@ static PyMethodDef PyModule_methods[] = {
     "Pulse the chest LED of NAO between two colours. Parameters: color1, color2, float time in seconds to alternate. Colours must be 'red','green', 'blue', 'white', 'blank', 'yellow' or 'pink'" },
   { "getBatteryStatus", (PyCFunction)PyModule_NaoGetBatteryStatus, METH_NOARGS,
     "Get the current battery status. Returns tuple(battery percentage, is_plugged_in, is_(dis)charging)" },
+  { "setCameraParameter", (PyCFunction)PyModule_NaoSetCameraParameter, METH_VARARGS,
+    "Set NAO camera parameter. Input: int parameter id, int value. Check NAO document for details. Default with no inputs sets parameter(s) to default values" },
+
 #define DEFINE_COMMON_PYMODULE_METHODS
 #include "../libsrc/pyridecore/PyModulePyCommon.cpp"
   { NULL, NULL, 0, NULL }           /* sentinel */

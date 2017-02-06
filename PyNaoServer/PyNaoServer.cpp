@@ -181,7 +181,29 @@ void NaoCam::takeSnapshot( const VideoDeviceDataHandler * dataHandler )
     videoProxy_->releaseDirectRawImage( gvmName_ );
   }
 }
-  
+
+bool NaoCam::setCameraParameter( int pid, int value )
+{
+  if (pid < -1 || pid > 34) {
+    ERROR_MSG( "PyNaoServer: Invalid camera parameter %d.\n", pid );
+    return false;
+  }
+  switch (pid) {
+    case -1:
+      return videoProxy_->setAllCameraParametersToDefault( gvmName_ );
+    case 3:
+    case 14:
+    case 15:
+    case 24:
+      ERROR_MSG( "PyNaoServer: Disabled camera parameter %d.\n", pid );
+      return false;
+  }
+  if (value < 0) {
+    return videoProxy_->setCameraParameterToDefault( gvmName_, pid );
+  }
+  return videoProxy_->setCameraParameter( gvmName_, pid, value );
+}
+
 bool NaoCam::getDefaultVideoSettings()
 {
   vSettings_.fps = 15;

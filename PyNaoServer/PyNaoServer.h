@@ -41,6 +41,7 @@ public:
   
   void continueProcessing();
   
+  bool setCameraParameter( int pid, int value );
   void getVideoSettings( VideoSettings & settings );
   void takeSnapshot( const VideoDeviceDataHandler * dataHandler );
 
