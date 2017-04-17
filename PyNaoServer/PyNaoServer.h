@@ -30,17 +30,17 @@
 namespace pyride {
 
 using namespace AL;
-  
+
 class NaoCam : public VideoDevice {
 public:
   NaoCam( boost::shared_ptr<ALBroker> pBroker, const std::string & pName );
   ~NaoCam();
-  
+
   bool initDevice();
   void finiDevice();
-  
+
   void continueProcessing();
-  
+
   bool setCameraParameter( int pid, int value );
   void getVideoSettings( VideoSettings & settings );
   void takeSnapshot( const VideoDeviceDataHandler * dataHandler );
@@ -61,7 +61,7 @@ private:
   bool initWorkerThread();
   void finiWorkerThread();
 };
-  
+
 class PyNaoServer : public ALSoundExtractor, AudioDevice, PyRideExtendedCommandHandler {
 public:
   PyNaoServer( boost::shared_ptr<ALBroker> pBroker, const std::string & pName );
@@ -69,7 +69,7 @@ public:
 
   bool innerTest() { return true; }
   bool isRunning() { return true; }
-  std::string version() { return "1.14.5"; }
+  std::string version() { return "2.1.4"; }
 
   // Automatically called right after the module is created.
   virtual void init();
@@ -109,7 +109,7 @@ private:
   boost::shared_ptr<ALMutex> callbackMutex_;
 
   AL_SOUND_FORMAT * audioBuffer_;
-  
+
   VideoDeviceList naoCams_;
   AudioDeviceList naoAudio_;
 

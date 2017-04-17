@@ -40,7 +40,7 @@ void * videograb_thread( void * controller )
   ((NaoCam *)controller)->continueProcessing();
   return NULL;
 }
-  
+
 NaoCam::NaoCam( boost::shared_ptr<ALBroker> pBroker, const std::string & pName ) :
   broker_( pBroker ),
   procThread_( (pthread_t)NULL ),
@@ -58,7 +58,7 @@ NaoCam::NaoCam( boost::shared_ptr<ALBroker> pBroker, const std::string & pName )
 
 NaoCam::~NaoCam()
 {
-  pthread_attr_destroy( &threadAttr_ ); 
+  pthread_attr_destroy( &threadAttr_ );
 }
 
 bool NaoCam::initDevice()
@@ -75,9 +75,9 @@ bool NaoCam::initDevice()
     videoProxy_.reset();
     return isInitialised_;
   }
-  
+
   std::string GVMName = "Controller_GVM";
-  
+
   try {
     gvmName_ = videoProxy_->subscribeCamera( GVMName, AL::kTopCamera, AL::kVGA, kYUV422InterlacedColorSpace,
                                       /*kRGBColorSpace,*/ 10 );
@@ -87,12 +87,12 @@ bool NaoCam::initDevice()
     videoProxy_.reset();
     return isInitialised_;
   }
-  
+
   if (!this->getDefaultVideoSettings()) {
     return isInitialised_;
   }
- 
-  INFO_MSG( "camera resolution = %d\n", videoProxy_->getResolution( gvmName_ ) ); 
+
+  INFO_MSG( "camera resolution = %d\n", videoProxy_->getResolution( gvmName_ ) );
   packetStamp_ = 0;
   clientNo_ = 0;
   isStreaming_ = false;
@@ -130,7 +130,7 @@ bool NaoCam::initWorkerThread()
 void NaoCam::finiWorkerThread()
 {
   isStreaming_ = false;
-  
+
   if (procThread_) {
     pthread_join( procThread_, NULL ); // allow thread to exit
     procThread_ = (pthread_t)NULL;
@@ -140,7 +140,7 @@ void NaoCam::finiWorkerThread()
 void NaoCam::continueProcessing()
 {
   ALImage * results;
-  
+
   //int width, height, nbLayers, colorSpace, seconds = 0;
   int rawDataSize = 0;
   unsigned char * rawData = NULL;
@@ -149,7 +149,7 @@ void NaoCam::continueProcessing()
 
   while (isStreaming_) {
     //gettimeofday( &pr1, NULL );
-    
+
     results = (ALImage *)(videoProxy_->getDirectRawImageLocal( gvmName_ ));
     if (results) {
       rawData = (unsigned char *)(results->getData());
@@ -210,9 +210,9 @@ bool NaoCam::getDefaultVideoSettings()
   vSettings_.format = RGB;
   vSettings_.resolution = 2; // 640x480
   vSettings_.reserved = 0;
-  
+
   this->setProcessParameters();
-  
+
   return true;
 }
 
@@ -245,7 +245,7 @@ void PyNaoServer::finiDevice()
   if (!isInitialised_) {
     return;
   }
-  
+
   this->finiWorkerThread();
 
   isInitialised_ = false;
@@ -257,7 +257,7 @@ bool PyNaoServer::initWorkerThread()
   try {
     if (audioBuffer_)
       delete [] audioBuffer_; // reset buffer just in case
-    
+
     audioBuffer_ = new AL_SOUND_FORMAT[kMaxAudioSamples];
     this->startDetection();
   }
@@ -289,21 +289,21 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
 {
   if (!audioBuffer_)
     return;
-  
+
   //memcpy( audioBuffer_, pDataInterleaved, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels );
-  
+
   //char nofSkippedChannels = 3;
-  
+
   const AL_SOUND_FORMAT * iterAudioDataSource = pDataInterleaved;
   const AL_SOUND_FORMAT * iterAudioDataSourceEnd = pDataInterleaved+pNbrSamples*pNbOfInputChannels;
-  
+
   AL_SOUND_FORMAT * iterAudioDataSelectedChannel = audioBuffer_;
   // take the 1st left channel
   while (iterAudioDataSource < iterAudioDataSourceEnd) {
     (*iterAudioDataSelectedChannel++) = (*iterAudioDataSource++);
     iterAudioDataSource += 3; //nofSkippedChannels;
   }
-  
+
   //printf( "captured %d audio samples data size %d nofchan %d\n", pNbrSamples, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels, pNbOfInputChannels );
   this->processAndSendAudioData( audioBuffer_, pNbrSamples );
 }
@@ -321,6 +321,7 @@ PyNaoServer::PyNaoServer( boost::shared_ptr<ALBroker> pBroker, const std::string
   functionName("onLeftBumperPressed", getName(), "Method called when the left bumper is pressed.");
   BIND_METHOD( PyNaoServer::onLeftBumperPressed );  functionName("onFrontTactilTouched", getName(), "Method called when the head front tactile is touched.");
 
+  functionName("onFrontTactilTouched", getName(), "Method called when the head front tactile is touched.");
   BIND_METHOD( PyNaoServer::onFrontTactilTouched );
   functionName("onMiddleTactilTouched", getName(), "Method called when the head middle tactile is touched.");
   BIND_METHOD( PyNaoServer::onMiddleTactilTouched );
@@ -372,14 +373,14 @@ void PyNaoServer::init()
     ERROR_MSG( "PyNaoServer: Could not create a proxy to ALMemory.\n");
     memoryProxy_.reset();
   }
-  
+
   NaoProxyManager::instance()->initWithBroker( getParentBroker(), memoryProxy_ );
   ServerDataProcessor::instance()->init( naoCams_, naoAudio_ );
   ServerDataProcessor::instance()->addCommandHandler( this );
   AppConfigManager::instance()->loadConfigFromFile( DEFAULT_CONFIGURATION_FILE );
   ServerDataProcessor::instance()->setClientID( AppConfigManager::instance()->clientID() );
   ServerDataProcessor::instance()->setDefaultRobotInfo( NAO, AppConfigManager::instance()->startPosition() );
-  
+
   PythonServer::instance()->init( AppConfigManager::instance()->enablePythonConsole(), PyNAOModule::instance() );
   ServerDataProcessor::instance()->discoverConsoles();
 
@@ -418,7 +419,7 @@ void PyNaoServer::fini()
     delete naocam;
   }
   naoCams_.clear();
-  
+
   this->finiDevice();
   naoAudio_.clear();
 
@@ -437,7 +438,7 @@ void PyNaoServer::fini()
   }*/
 }
 
-bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command, 
+bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command,
                                             const unsigned char * optionalData,
                                             const int optionalDataLength )
 {
@@ -479,7 +480,7 @@ bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command,
       memcpy( &volume, dataPtr, sizeof( int ) );
       NaoProxyManager::instance()->setAudioVolume( volume );
     }
-      break;    
+      break;
     default:
       status = false;
       break;
@@ -512,22 +513,22 @@ PyNaoServer::~PyNaoServer()
 void PyNaoServer::onRightBumperPressed()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   /**
    * Check that the bumper is pressed.
    */
   float stat =  memoryProxy_->getData( "RightBumperPressed" );
   if (stat  > 0.5f) {
     PyObject * arg = NULL;
-    
+
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
-    
+
     arg = Py_BuildValue( "(s)", "right" );
 
     PyNAOModule::instance()->invokeCallback( "onBumperPressed", arg );
     Py_DECREF( arg );
-    
+
     PyGILState_Release( gstate );
   }
 }
@@ -535,22 +536,22 @@ void PyNaoServer::onRightBumperPressed()
 void PyNaoServer::onLeftBumperPressed()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   /**
    * Check that the bumper is pressed.
    */
   float stat =  memoryProxy_->getData( "LeftBumperPressed" );
   if (stat  > 0.5f) {
     PyObject * arg = NULL;
-    
+
     PyGILState_STATE gstate;
     gstate = PyGILState_Ensure();
-    
+
     arg = Py_BuildValue( "(s)", "left" );
-    
+
     PyNAOModule::instance()->invokeCallback( "onBumperPressed", arg );
     Py_DECREF( arg );
-    
+
     PyGILState_Release( gstate );
   }
 }
@@ -767,47 +768,47 @@ void PyNaoServer::onLeftHandRightTouched()
 void PyNaoServer::onSingleChestButtonPressed()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   /**
    * Check that the bumper is pressed.
    */
   PyObject * arg = NULL;
-  
+
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
-  
+
   arg = Py_BuildValue( "(i)", 1 );
-  
+
   PyNAOModule::instance()->invokeCallback( "onChestButtonPressed", arg );
   Py_DECREF( arg );
-  
+
   PyGILState_Release( gstate );
 }
 
 void PyNaoServer::onDoubleChestButtonPressed()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   /**
    * Check that the bumper is pressed.
    */
   PyObject * arg = NULL;
-  
+
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
-  
+
   arg = Py_BuildValue( "(i)", 2 );
-  
+
   PyNAOModule::instance()->invokeCallback( "onChestButtonPressed", arg );
   Py_DECREF( arg );
-  
+
   PyGILState_Release( gstate );
 }
 
 void PyNaoServer::onTripleChestButtonPressed()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   /**
    * Check that the bumper is pressed.
    */
@@ -815,9 +816,9 @@ void PyNaoServer::onTripleChestButtonPressed()
 
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
-  
+
   arg = Py_BuildValue( "(i)", 3 );
-  
+
   PyNAOModule::instance()->invokeCallback( "onChestButtonPressed", arg );
   Py_DECREF( arg );
 
@@ -833,13 +834,13 @@ void PyNaoServer::onTripleChestButtonPressed()
 void PyNaoServer::onBatteryPowerPlugged()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   /**
    * Check that the bumper is pressed.
    */
   bool isplugged =  memoryProxy_->getData( "BatteryPowerPluggedChanged" );
   PyObject * arg = NULL;
-    
+
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
 
@@ -847,7 +848,7 @@ void PyNaoServer::onBatteryPowerPlugged()
 
   PyNAOModule::instance()->invokeCallback( "onPowerPluggedChange", arg );
   Py_DECREF( arg );
-  
+
   PyGILState_Release( gstate );
 }
 
@@ -861,21 +862,21 @@ void PyNaoServer::onBatteryPowerPlugged()
 void PyNaoServer::onBatteryChargeChanged()
 {
   ALCriticalSection section( callbackMutex_ );
-  
+
   int batpercent =  memoryProxy_->getData( "BatteryChargeChanged" );
   bool discharging = memoryProxy_->getData( "BatteryDisChargingFlagChanged" );
 
   PyObject * arg = NULL;
-  
+
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
-  
+
   arg = Py_BuildValue( "(iO)", batpercent, discharging ? Py_True : Py_False );
-  
+
   PyNAOModule::instance()->invokeCallback( "onBatteryChargeChange", arg );
 
   Py_DECREF( arg );
-  
+
   PyGILState_Release( gstate );
 }
 
@@ -890,12 +891,12 @@ void PyNaoServer::notifySystemShutdown()
   INFO_MSG( "PyNaoServer is shutting down..\n" );
 
   PyObject * arg = NULL;
-  
+
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
-  
+
   PyNAOModule::instance()->invokeCallback( "onSystemShutdown", arg );
-  
+
   PyGILState_Release( gstate );
 }
 /**@}*/
