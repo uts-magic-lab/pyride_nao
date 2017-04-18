@@ -1090,6 +1090,7 @@ static PyObject * PyModule_NaoMoveBodyTo( PyObject * self, PyObject * args )
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
+
   if (boolObj) {
     if (!PyBool_Check( boolObj )) {
       PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyTo: optional input parameters must be a boolean!" );
@@ -1104,7 +1105,6 @@ static PyObject * PyModule_NaoMoveBodyTo( PyObject * self, PyObject * args )
     }
     inpost = !PyObject_IsTrue( isBlockObj );
   }
-
 
   RobotPose pose;
   pose.x = xcoord;
@@ -1446,12 +1446,12 @@ static PyObject * PyModule_NaoStopAllAudio( PyObject * self )
 static PyObject * PyModule_NaoStartBehaviour( PyObject * self, PyObject * args )
 {
   char * name = NULL;
-  
+
   if (!PyArg_ParseTuple( args, "s", &name )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (NaoProxyManager::instance()->startBehaviour( name )) {
     Py_RETURN_TRUE;
   }
@@ -1473,12 +1473,12 @@ static PyObject * PyModule_NaoRunBehaviour( PyObject * self, PyObject * args )
   char * name = NULL;
   bool inpost = true;
   PyObject * boolObj = NULL;
-  
+
   if (!PyArg_ParseTuple( args, "s|O", &name, boolObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   if (boolObj) {
     if (!PyBool_Check( boolObj )) {
       PyErr_Format( PyExc_ValueError, "PyNAO.runBehaviour: last optional input parameter must be a boolean!" );
@@ -1486,7 +1486,7 @@ static PyObject * PyModule_NaoRunBehaviour( PyObject * self, PyObject * args )
     }
     inpost = !PyObject_IsTrue( boolObj );
   }
-  
+
   if (NaoProxyManager::instance()->runBehaviour( name, inpost )) {
     Py_RETURN_TRUE;
   }
@@ -1505,12 +1505,12 @@ static PyObject * PyModule_NaoRunBehaviour( PyObject * self, PyObject * args )
 static PyObject * PyModule_NaoStopBehaviour( PyObject * self, PyObject * args )
 {
   char * name = NULL;
-  
+
   if (!PyArg_ParseTuple( args, "s", &name )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  
+
   NaoProxyManager::instance()->stopBehaviour( name );
   Py_RETURN_NONE;
 }

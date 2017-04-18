@@ -96,7 +96,7 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
   if (speechProxy_) {
     INFO_MSG( "Nao text to speech is successfully initialised.\n" );
   }
-  
+
   try {
     ledProxy_ = boost::shared_ptr<ALLedsProxy>(new ALLedsProxy( broker ));
   }
@@ -129,7 +129,7 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
   if (audioPlayerProxy_) {
     INFO_MSG( "Nao ALAudioPlayer are successfully initialised.\n" );
   }
-  
+
   try {
     behaviourManagerProxy_ = boost::shared_ptr<ALBehaviorManagerProxy>(new ALBehaviorManagerProxy( broker ));
   }
@@ -138,7 +138,7 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
     behaviourManagerProxy_.reset();
   }
   if (behaviourManagerProxy_) {
-    INFO_MSG( "Nao ALBehaviourManager are successfully initialised.\n" );
+    INFO_MSG( "Nao ALBehaviourManager is successfully initialised.\n" );
   }
 
   try {
@@ -148,7 +148,7 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
     ERROR_MSG( "PyNaoServer: Could not create a proxy to ALMotion.\n");
     motionProxy_.reset();
   }
-  
+
   if (motionProxy_) {
     moveInitialised_ = false;
     AL::ALValue joints; // make sure we get joint limits in correct order
@@ -182,7 +182,7 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
 
     INFO_MSG( "Nao Motion is successfully initialised.\n" );
   }
-  
+
   try {
     postureProxy_ = boost::shared_ptr<ALRobotPostureProxy>(new ALRobotPostureProxy( broker ));
   }
@@ -225,7 +225,7 @@ bool NaoProxyManager::getHeadPos( float & yaw, float & pitch )
   }
   return false;
 }
-  
+
 void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relative, float frac_speed )
 {
   if (motionProxy_) {
@@ -237,9 +237,9 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relat
 
     if (relative) {
       std::vector<float> curHeadPos;
-      
+
       curHeadPos = motionProxy_->getAngles( names, true );
-      
+
       newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
       newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
     }
@@ -249,7 +249,7 @@ void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relat
     }
     motionProxy_->setStiffnesses( names, stiff );
 
-    try { 
+    try {
       motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, frac_speed );
     }
     catch (...) {
@@ -451,12 +451,12 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
 {
   if (!motionProxy_)
     return false;
-  
+
   int pos_size = positions.size();
   if (pos_size != 5) {
     return false;
   }
-  
+
   //AL::ALValue names = isLeftArm ? "LArm" : "RArm";
   AL::ALValue names = isLeftArm ? AL::ALValue::array( "LShoulderPitch",
                                                       "LShoulderRoll",
@@ -468,7 +468,7 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
                                                       "RElbowYaw",
                                                       "RElbowRoll",
                                                       "RWristYaw");
-  
+
   AL::ALValue angles;
 
   motionProxy_->setStiffnesses( names, 1.0 );
@@ -495,9 +495,9 @@ bool NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< s
 {
   if (!motionProxy_)
     return false;
-  
+
   size_t traj_size = trajectory.size();
-  
+
   if (traj_size <= 0 || traj_size != times_to_reach.size())
     return false;
 
@@ -519,14 +519,14 @@ bool NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< s
 
   joints.arraySetSize( 5 );
   times.arraySetSize( 5 );
-  
+
   for (size_t j = 0; j < 5; ++j) {
     AL::ALValue angles;
     AL::ALValue ttr;
-    
+
     angles.arraySetSize( traj_size );
     ttr.arraySetSize( traj_size );
-    
+
     joints[j] = angles;
     times[j] = ttr;
 
@@ -563,7 +563,7 @@ bool NaoProxyManager::moveLegWithJointPos( bool isLeft, const std::vector<float>
   }
   AL::ALValue names = isLeft ? "LLeg" : "RLeg";
   AL::ALValue angles;
-  
+
   motionProxy_->setStiffnesses( names, 1.0 );
 
   angles.arraySetSize( pos_size );
@@ -577,14 +577,14 @@ bool NaoProxyManager::moveLegWithJointPos( bool isLeft, const std::vector<float>
     ERROR_MSG( "Unable to set angle to %s", angles.toString().c_str() );
     return false;
   }
-  return true;  
+  return true;
 }
 
 bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions, float frac_speed )
 {
   if (!motionProxy_)
     return false;
-  
+
   int pos_size = positions.size();
   if (pos_size != kNAOJointNo) {
     return false;
@@ -600,7 +600,7 @@ bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions
   AL::ALValue angles;
 
   motionProxy_->setStiffnesses( names, 1.0 );
-  
+
   angles.arraySetSize( pos_size );
   for (int i = 0; i < pos_size; ++i) {
     angles[i] = clamp( positions[i], i );
@@ -790,7 +790,7 @@ bool NaoProxyManager::startBehaviour( const std::string & behaviour )
 {
   if (!behaviourManagerProxy_)
     return false;
-  
+
   try {
     behaviourManagerProxy_->startBehavior( behaviour );
   }
@@ -805,7 +805,7 @@ bool NaoProxyManager::runBehaviour( const std::string & behaviour, bool inpost )
 {
   if (!behaviourManagerProxy_)
     return false;
-    
+
   try {
     if (inpost) {
       behaviourManagerProxy_->post.runBehavior( behaviour );
@@ -910,9 +910,8 @@ void NaoProxyManager::pulsatingChestLED( const NAOLedColour colour1, const NAOLe
   if (!ledProxy_)
     return;
 
-  
   pthread_mutex_lock( &t_mutex_ );
-  
+
   ledColourHex_.arraySetSize( 2 );
   ledColourHex_[0] = this->colour2Hex( colour1 );
   ledColourHex_[1] = this->colour2Hex( colour2 );
@@ -923,7 +922,7 @@ void NaoProxyManager::pulsatingChestLED( const NAOLedColour colour1, const NAOLe
 
   if (isChestLEDPulsating_)
     return;
-  
+
   isChestLEDPulsating_ = true;
 
   if (pthread_create( &runningThread_, NULL, pulse_thread, this ) ) {
@@ -963,6 +962,9 @@ void NaoProxyManager::fini()
   if (audioPlayerProxy_) {
     audioPlayerProxy_.reset();
   }
+  if (behaviourManagerProxy_) {
+    behaviourManagerProxy_.reset();
+  }
 }
 
 // helper function
@@ -970,14 +972,14 @@ void NaoProxyManager::continuePulseChestLED()
 {
   fd_set dummyFDSet;
   struct timeval timeout;
-  
+
   FD_ZERO( &dummyFDSet );
-  
+
   while (isChestLEDPulsating_) {
     pthread_mutex_lock( &t_mutex_ );
     ledProxy_->fadeListRGB( "ChestLeds", ledColourHex_, ledChangePeriod_ );
     pthread_mutex_unlock( &t_mutex_ );
-    
+
     timeout.tv_sec = 0;
     timeout.tv_usec = 10000;
     select( 1, &dummyFDSet, NULL, NULL, &timeout );
@@ -988,9 +990,9 @@ void NaoProxyManager::timeoutCheck()
 {
   fd_set dummyFDSet;
   struct timeval now, timeout;
-  
+
   FD_ZERO( &dummyFDSet );
-  
+
   do {
     timeout.tv_sec = 0;
     timeout.tv_usec = 10000;
@@ -1000,14 +1002,14 @@ void NaoProxyManager::timeoutCheck()
   this->cancelBodyMovement();
   timeoutThread_ = (pthread_t)NULL;
 }
-  
+
 float NaoProxyManager::clamp( float val, int jointInd )
 {
   if (jointInd >= jointLimits_.getSize()) {
     ERROR_MSG( "invalid joint index %d\n", jointInd );
     return val;
   }
-  
+
   if (val < (float)jointLimits_[jointInd][0]) {
     return (float)jointLimits_[jointInd][0];
   }

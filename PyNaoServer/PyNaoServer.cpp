@@ -237,7 +237,6 @@ bool PyNaoServer::initDevice()
   aSettings_.reserved = (char)audioDevice->call<int>( "getOutputVolume" );
   INFO_MSG( "Nao audio device is successfully initialised.\n" );
   return isInitialised_;
-
 }
 
 void PyNaoServer::finiDevice()
@@ -311,7 +310,7 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
 // implementation of PyNaoServer
 PyNaoServer::PyNaoServer( boost::shared_ptr<ALBroker> pBroker, const std::string & pName ) :
   ALSoundExtractor( pBroker, pName ),
-  AudioDevice( 1 ),
+  AudioDevice(),
   audioBuffer_( NULL ),
   callbackMutex_( ALMutex::createALMutex() )
 {

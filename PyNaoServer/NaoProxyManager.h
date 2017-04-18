@@ -87,10 +87,10 @@ class NaoProxyManager
 public:
   static NaoProxyManager * instance();
   ~NaoProxyManager();
-  
+
   void initWithBroker( boost::shared_ptr<ALBroker> broker, boost::shared_ptr<ALMemoryProxy> memoryProxy );
   void sayWithVolume( const std::string & text, float volume  = 0.0, bool toBlock = false );
-  
+
   int loadAudioFile( const std::string & text );
   void unloadAudioFile( const int audioID );
   void unloadAllAudioFiles();
@@ -100,11 +100,11 @@ public:
   void setAudioVolume( const int vol );
   void pauseAudioID( const int audioID );
   void stopAllAudio();
-  
+
   void setChestLED( const NAOLedColour colour );
   void pulsatingChestLED( const NAOLedColour colour1, const NAOLedColour colour2, const float period = 0.5 );
   void continuePulseChestLED();
-  
+
   void getBatteryStatus( int & percentage, bool & isplugged, bool & ischarging, bool & isdischarging );
 
   bool getHeadPos( float & yaw, float & pitch );
@@ -117,7 +117,7 @@ public:
                        bool useSensor = false );
   void getLegJointsPos( bool isLeft, std::vector<float> & positions,
                        bool useSensor = false );
-  
+
   void setArmStiffness( bool isLeft, const float stiff );
   void setHeadStiffness( const float stiff );
   void setBodyStiffness( const float stiff );
@@ -125,7 +125,7 @@ public:
 
   bool moveArmWithJointPos( bool isLeft, const std::vector<float> & positions,
                             float frac_speed = 0.5, bool inpost = false );
-  
+
   bool moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
                                                    std::vector<float> & times_to_reach, bool inpost = false );
 
@@ -148,12 +148,12 @@ public:
   bool moveBodyTo( const RobotPose & pose, bool cancelPreviousMove = false, bool inpost = false );
 
   void updateBodyPose( const RobotPose & pose );
-  
+
   bool startBehaviour( const std::string & behaviour );
   bool runBehaviour( const std::string & behaviour, bool inpost = false );
   void stopBehaviour( const std::string & behavour );
   void stopAllBehaviours();
-  
+
   std::vector<std::string> getBehaviourList( bool installed = false );
 
   void timeoutCheck();
@@ -177,9 +177,9 @@ private:
   ALValue jointLimits_;
 
   struct timeval cmdTimeStamp_;
-  
+
   bool moveInitialised_;
-  
+
   bool isChestLEDPulsating_;
   ALValue ledColourHex_;
   ALValue ledChangePeriod_;
@@ -189,7 +189,7 @@ private:
   pthread_mutexattr_t t_mta;
 
   NaoProxyManager();
-  
+
   float clamp( float val, int jointInd );
   int colour2Hex( const NAOLedColour colour );
 

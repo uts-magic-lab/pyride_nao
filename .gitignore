@@ -30,3 +30,6 @@
 *.*~
 package
 *.pyc
+
+# buiild directories
+build-*
