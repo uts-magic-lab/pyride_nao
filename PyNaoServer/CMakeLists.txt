@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 project(PyNaoServer)
 find_package(qibuild)
 
-add_definitions( -DUSE_ENCRYPTION )
+add_definitions( -DUSE_ENCRYPTION -DNAO_BUILD)
 
 qi_create_lib( pynaoserver
   SRC main.cpp
