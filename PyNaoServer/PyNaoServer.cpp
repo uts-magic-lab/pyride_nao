@@ -33,7 +33,7 @@ namespace pyride {
 
 static const int kMaxAudioSamples = 16384;
 static const float kHFOV = 60.97;
-static const float kVFOV = 34.80;
+static const float kVFOV = 47.64;
 
 void * videograb_thread( void * controller )
 {
@@ -293,7 +293,7 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
 
   //char nofSkippedChannels = 3;
 
-  const AL_SOUND_FORMAT * iterAudioDataSource = pDataInterleaved;
+  const AL_SOUND_FORMAT * iterAudioDataSource = pDataInterleaved+2;
   const AL_SOUND_FORMAT * iterAudioDataSourceEnd = pDataInterleaved+pNbrSamples*pNbOfInputChannels;
 
   AL_SOUND_FORMAT * iterAudioDataSelectedChannel = audioBuffer_;
