@@ -32,6 +32,7 @@ PYRIDE_LOGGING_DECLARE( "/home/nao/log/tin.log" );
 namespace pyride {
 
 static const int kMaxAudioSamples = 16384;
+static const int kAudioSampleRate = 16000;
 static const float kHFOV = 60.97;
 static const float kVFOV = 47.64;
 
@@ -224,7 +225,7 @@ bool PyNaoServer::initDevice()
 
   try {
     audioDevice->callVoid( "setClientPreferences", getName(),
-                          48000, (int)ALLCHANNELS, 0 );
+                          kAudioSampleRate, (int)FRONTCHANNEL, 0 );
   }
   catch (const std::exception &error) {
     ERROR_MSG( "PyNaoServer: Could not set parameters to audio device.\n");
@@ -233,9 +234,12 @@ bool PyNaoServer::initDevice()
   packetStamp_ = 0;
   clientNo_ = 0;
   isStreaming_ = false;
-  isInitialised_ = true;
   aSettings_.reserved = (char)audioDevice->call<int>( "getOutputVolume" );
-  INFO_MSG( "Nao audio device is successfully initialised.\n" );
+  aSettings_.sampling = kAudioSampleRate;
+  if (this->setProcessParameters()) {
+    INFO_MSG( "Nao audio device is successfully initialised.\n" );
+    isInitialised_ = true;
+  }
   return isInitialised_;
 }
 
@@ -289,10 +293,10 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
   if (!audioBuffer_)
     return;
 
-  //memcpy( audioBuffer_, pDataInterleaved, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels );
+  memcpy( audioBuffer_, pDataInterleaved, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels );
 
   //char nofSkippedChannels = 3;
-
+  /*
   const AL_SOUND_FORMAT * iterAudioDataSource = pDataInterleaved+2;
   const AL_SOUND_FORMAT * iterAudioDataSourceEnd = pDataInterleaved+pNbrSamples*pNbOfInputChannels;
 
@@ -302,7 +306,7 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
     (*iterAudioDataSelectedChannel++) = (*iterAudioDataSource++);
     iterAudioDataSource += 3; //nofSkippedChannels;
   }
-
+   */
   //printf( "captured %d audio samples data size %d nofchan %d\n", pNbrSamples, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels, pNbOfInputChannels );
   this->processAndSendAudioData( audioBuffer_, pNbrSamples );
 }
