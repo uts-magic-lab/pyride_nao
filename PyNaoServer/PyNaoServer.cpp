@@ -25,6 +25,7 @@
 #include "PyNaoServer.h"
 #include "NaoProxyManager.h"
 #include "AppConfigManager.h"
+#include "AudioFeedbackStream.h"
 #include "PyNAOModule.h"
 
 PYRIDE_LOGGING_DECLARE( "/home/nao/log/tin.log" );
@@ -226,6 +227,9 @@ bool PyNaoServer::initDevice()
   try {
     audioDevice->callVoid( "setClientPreferences", getName(),
                           kAudioSampleRate, (int)FRONTCHANNEL, 0 );
+    audioDevice->callVoid("setParameter", std::string("outputSampleRate"),
+                               kAudioSampleRate );
+
   }
   catch (const std::exception &error) {
     ERROR_MSG( "PyNaoServer: Could not set parameters to audio device.\n");
@@ -386,6 +390,8 @@ void PyNaoServer::init()
       (RobotCapability)(MOBILITY|AUDIO_FEEBACK|MANIPULATION));
 
   PythonServer::instance()->init( AppConfigManager::instance()->enablePythonConsole(), PyNAOModule::instance() );
+  AudioFeedbackStream::instance()->initWithModule( audioDevice, PyNAOModule::instance() );
+
   ServerDataProcessor::instance()->discoverConsoles();
 
   if (memoryProxy_) {
@@ -484,6 +490,19 @@ bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command, int & ret
       int volume;
       memcpy( &volume, dataPtr, sizeof( int ) );
       NaoProxyManager::instance()->setAudioVolume( volume );
+    }
+      break;
+    case AUDIO_FEEDBACK:
+    {
+      bool ison = (bool)optionalData[0];
+      if (ison) { // only the client with the exclusive control can do video feedback
+        AudioFeedbackStream::instance()->addClient();
+        retVal = 1;
+      }
+      else {
+        AudioFeedbackStream::instance()->removeClient();
+        retVal = 0;
+      }
     }
       break;
     default:
