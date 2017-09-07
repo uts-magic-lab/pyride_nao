@@ -382,7 +382,8 @@ void PyNaoServer::init()
   ServerDataProcessor::instance()->addCommandHandler( this );
   AppConfigManager::instance()->loadConfigFromFile( DEFAULT_CONFIGURATION_FILE );
   ServerDataProcessor::instance()->setClientID( AppConfigManager::instance()->clientID() );
-  ServerDataProcessor::instance()->setDefaultRobotInfo( NAO, AppConfigManager::instance()->startPosition() );
+  ServerDataProcessor::instance()->setDefaultRobotInfo( NAO, AppConfigManager::instance()->startPosition(),
+      (RobotCapability)(MOBILITY|AUDIO_FEEBACK|MANIPULATION));
 
   PythonServer::instance()->init( AppConfigManager::instance()->enablePythonConsole(), PyNAOModule::instance() );
   ServerDataProcessor::instance()->discoverConsoles();
@@ -441,7 +442,7 @@ void PyNaoServer::fini()
   }*/
 }
 
-bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command,
+bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command, int & retVal,
                                             const unsigned char * optionalData,
                                             const int optionalDataLength )
 {
@@ -449,6 +450,7 @@ bool PyNaoServer::executeRemoteCommand( PyRideExtendedCommand command,
   // in PyRideCommon.h
   // for example:
   bool status = true;
+  retVal = 0;
   switch (command) {
     case SPEAK:
     {
