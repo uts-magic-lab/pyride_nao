@@ -203,7 +203,7 @@ void AudioFeedbackStream::grabAndDispatchAudioStreamData()
     short * inputAudioPtr = (short *)audioData;
     short * outputAudioPtr = (short *)outputData;
 
-    for(int i= 0; i < decodedSamples; i++) {
+    for(int i = 0; i < decodedSamples; i++) {
       *outputAudioPtr++ = *inputAudioPtr;
       *outputAudioPtr++ = *inputAudioPtr++;
     }

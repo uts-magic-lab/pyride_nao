@@ -227,7 +227,7 @@ bool PyNaoServer::initDevice()
   try {
     audioDevice->callVoid( "setClientPreferences", getName(),
                           kAudioSampleRate, (int)FRONTCHANNEL, 0 );
-    audioDevice->callVoid("setParameter", std::string("outputSampleRate"),
+    audioDevice->callVoid( "setParameter", std::string("outputSampleRate"),
                                kAudioSampleRate );
 
   }
