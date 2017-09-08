@@ -210,7 +210,7 @@ void AudioFeedbackStream::grabAndDispatchAudioStreamData()
 
     try {
       audioDevice_->callVoid( "sendLocalBufferToOutput", decodedSamples,
-                                  (int) &outputData );
+                                  (int) outputData );
     }
     catch( AL::ALError &e ) {
       ERROR_MSG( "AudioFeedbackStream unable to send audio to output.\n" );
