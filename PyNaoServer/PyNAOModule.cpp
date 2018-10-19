@@ -26,16 +26,16 @@ PyDoc_STRVAR( PyNAO_doc, \
 PyNAOModule * PyNAOModule::s_pyNAOModule = NULL;
 
 static const char *kLeftArmKWlist[] = { "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint", "l_elbow_roll_joint", "l_wrist_yaw_joint",
-    "frac_max_speed", "is_blocking", NULL };
+    "frac_max_speed", NULL };
 static const char *kRightArmKWlist[] = { "r_shoulder_pitch_joint", "r_shoulder_roll_joint", "r_elbow_yaw_joint", "r_elbow_roll_joint", "r_wrist_yaw_joint",
-    "frac_max_speed", "is_blocking", NULL };
+    "frac_max_speed", NULL };
 
 static const char *kLeftLegKWlist[] = { "l_hip_yaw_pitch_joint", "l_hip_roll_joint", "l_hip_pitch_joint", "l_knee_pitch_joint", "l_ankle_pitch_joint",
     "l_ankle_roll_joint", "frac_max_speed", NULL };
 static const char *kRightLegKWlist[] = { "r_hip_yaw_pitch_joint", "r_hip_roll_joint", "r_hip_pitch_joint", "r_knee_pitch_joint", "r_ankle_pitch_joint",
     "r_ankle_roll_joint", "frac_max_speed", NULL };
 
-static const char *kBodyRawJointDataKWlist[] = { "joints", "keyframes", "timestamps", "is_blocking", NULL };
+static const char *kBodyRawJointDataKWlist[] = { "joints", "keyframes", "timestamps", NULL };
 
 static const char *kBodyKWlist[] = { "head_yaw_joint", "head_pitch_joint",
   "l_shoulder_pitch_joint", "l_shoulder_roll_joint", "l_elbow_yaw_joint",
@@ -179,14 +179,9 @@ static PyObject * PyModule_NaoSayWithVolume( PyObject * self, PyObject * args )
 {
   float volume = 0.0;
   char * dataStr = NULL;
-  PyObject * toBlockObj = NULL;
 
-  if (!PyArg_ParseTuple( args, "s|fO", &dataStr, &volume, &toBlockObj )) {
+  if (!PyArg_ParseTuple( args, "s|f", &dataStr, &volume )) {
     // PyArg_ParseTuple will set the error status.
-    return NULL;
-  }
-  if (toBlockObj && !PyBool_Check( toBlockObj )) {
-    PyErr_Format( PyExc_ValueError, "PyNAO.say: third parameter must be a boolean!" );
     return NULL;
   }
   if (volume < 0.0 || volume > 1.0) {
@@ -194,8 +189,7 @@ static PyObject * PyModule_NaoSayWithVolume( PyObject * self, PyObject * args )
     return NULL;
   }
   if (dataStr) {
-    NaoProxyManager::instance()->sayWithVolume( string( dataStr ), volume,
-                                               (toBlockObj && PyObject_IsTrue( toBlockObj )) );
+    NaoProxyManager::instance()->sayWithVolume( string( dataStr ), volume );
   }
   Py_RETURN_NONE;
 }
@@ -237,8 +231,10 @@ static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
     }
   }
 
-  NaoProxyManager::instance()->moveHeadTo( yaw, pitch, isRelative, frac_speed );
-  Py_RETURN_NONE;
+  if (NaoProxyManager::instance()->moveHeadTo( yaw, pitch, isRelative, frac_speed ))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
 }
 
 static PyObject * PyModule_NaoUpdateHeadPos( PyObject * self, PyObject * args )
@@ -478,20 +474,17 @@ static PyObject * PyModule_NaoSetLegStiffness( PyObject * self, PyObject * args 
   Py_RETURN_NONE;
 }
 
-/*! \fn moveArmWithJointTrajectory(joint_trajectory,is_blocking)
+/*! \fn moveArmWithJointTrajectory(joint_trajectory)
  *  \memberof PyNAO
  *  \brief Move a NAO arm to a sequence of joint positions, i.e. trajectory.
  *  \param list joint_trajectory. A list of joint position dictionaries with the same structure of the PyNAO.moveArmWithJointPos.
- *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call (Default False).
  *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * args )
 {
   PyObject * trajObj = NULL;
-  PyObject * isYesObj = NULL;
-  bool inpost = true;
 
-  if (!PyArg_ParseTuple( args, "O|O", &trajObj, &isYesObj )) {
+  if (!PyArg_ParseTuple( args, "O", &trajObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
@@ -501,16 +494,6 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
   if (!PyList_Check( trajObj ) || (listSize = PyList_Size( trajObj )) == 0) {
     PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointTrajectory: input parameter must be a non empty list of dictionary!" );
     return NULL;
-  }
-
-  if (isYesObj) {
-    if (PyBool_Check( isYesObj )) {
-      inpost = !PyObject_IsTrue( isYesObj );
-    }
-    else {
-      PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointTrajectory: the second parameter must be a boolean!" );
-      return NULL;
-    }
   }
 
   PyObject * jointPos = NULL;
@@ -572,39 +555,36 @@ static PyObject * PyModule_NaoMoveArmWithJointTraj( PyObject * self, PyObject * 
     }
   }
 
-  if (NaoProxyManager::instance()->moveArmWithJointTrajectory( (armsel == 1), trajectory, times_to_reach, inpost ))
+  if (NaoProxyManager::instance()->moveArmWithJointTrajectory( (armsel == 1), trajectory, times_to_reach ))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
 }
 
-/*! \fn moveArmWithJointPos(joint_position, frac_max_speed, is_blocking)
+/*! \fn moveArmWithJointPos(joint_position, frac_max_speed)
  *  \memberof PyNAO
  *  \brief Move a NAO's arm to the specified joint position with a certain speed.
  *  \param dict joint_position. A dictionary of arm joint positions in radian.
  *  The dictionary must the same structure as the return of PyNAO.getArmJointPositions.
  *  \param float frac_max_speed. Fraction of the maximum motor speed.
- *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call (Default False).
  *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * args, PyObject * keywds )
 {
   float s_p_j, s_r_j, e_y_j, e_r_j, w_y_j;
   float frac_max_speed = 0.5;
-  PyObject * boolObj = NULL;
 
   bool isLeftArm = false;
-  bool inpost = true;
 
-  if (PyArg_ParseTupleAndKeywords( args, keywds, "fffff|fO", (char**)kLeftArmKWlist,
-                                  &s_p_j, &s_r_j, &e_y_j, &e_r_j, &w_y_j, &frac_max_speed, &boolObj ))
+  if (PyArg_ParseTupleAndKeywords( args, keywds, "fffff|f", (char**)kLeftArmKWlist,
+                                  &s_p_j, &s_r_j, &e_y_j, &e_r_j, &w_y_j, &frac_max_speed ))
   {
     isLeftArm = true;
   }
   else {
     PyErr_Clear();
-    if (!PyArg_ParseTupleAndKeywords( args, keywds, "fffff|fO", (char**)kRightArmKWlist,
-                                     &s_p_j, &s_r_j, &e_y_j, &e_r_j, &w_y_j, &frac_max_speed, &boolObj ))
+    if (!PyArg_ParseTupleAndKeywords( args, keywds, "fffff|f", (char**)kRightArmKWlist,
+                                     &s_p_j, &s_r_j, &e_y_j, &e_r_j, &w_y_j, &frac_max_speed ))
     {
       // PyArg_ParseTuple will set the error status.
       return NULL;
@@ -616,16 +596,6 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
     return NULL;
   }
 
-  if (boolObj) {
-    if (PyBool_Check( boolObj )) {
-      inpost = !PyObject_IsTrue( boolObj );
-    }
-    else {
-      PyErr_Format( PyExc_ValueError, "PyNAO.moveArmWithJointPos: is_blocking parameter must be a boolean!" );
-      return NULL;
-    }
-  }
-
   std::vector<float> positions( 5, 0.0 );
   positions[0] = s_p_j;
   positions[1] = s_r_j;
@@ -633,7 +603,7 @@ static PyObject * PyModule_NaoMoveArmWithJointPos( PyObject * self, PyObject * a
   positions[3] = e_r_j;
   positions[4] = w_y_j;
 
-  if (NaoProxyManager::instance()->moveArmWithJointPos( isLeftArm, positions, frac_max_speed, inpost ))
+  if (NaoProxyManager::instance()->moveArmWithJointPos( isLeftArm, positions, frac_max_speed ))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
@@ -764,10 +734,10 @@ static PyObject * PyModule_NaoMoveBodyWithJointPos( PyObject * self, PyObject * 
 /*! \fn moveBodyWithRawTrajectoryData(joint_trajectory_data)
  *  \memberof PyNAO
  *  \brief Move the NAO body joints in specified trajectories.
- *  \param dict joint_trajectory_data. A dictionary of {joints, keyframes, timestamps, is_blocking} where
+ *  \param dict joint_trajectory_data. A dictionary of {joints, keyframes, timestamps} where
  *  joints is a list of joint names that are factory defined, keyframes is a list of corresponding joint values (trajectory)
  *  for each joint specified in joints; timestamps is a list of corresponding time to reach values for the keyframes
- *  for each joint specified in joints; is_blocking is a boolean for whether the call is blocking.
+ *  for each joint specified in joints;
  *  \return bool. True == valid command; False == invalid command.
  *  \warning This method is not for general use. You need to know what you are doing.
  */
@@ -776,12 +746,10 @@ static PyObject * PyModule_NaoMoveBodyWithRawTrajectoryData( PyObject * self, Py
   PyObject * jointsObj = NULL;
   PyObject * timesObj = NULL;
   PyObject * keyframesObj = NULL;
-  PyObject * boolObj = NULL;
-  bool inpost = false;
   bool isbezier = false;
 
-  if (!PyArg_ParseTupleAndKeywords( args, keywds, "OOO|O",
-                                   (char**)kBodyRawJointDataKWlist, &jointsObj, &keyframesObj, &timesObj, &boolObj ))
+  if (!PyArg_ParseTupleAndKeywords( args, keywds, "OOO",
+                                   (char**)kBodyRawJointDataKWlist, &jointsObj, &keyframesObj, &timesObj ))
   {
     // PyArg_ParseTuple will set the error status.
     return NULL;
@@ -912,17 +880,7 @@ static PyObject * PyModule_NaoMoveBodyWithRawTrajectoryData( PyObject * self, Py
     time_stamps.push_back( time_values );
   }
 
-  if (boolObj) {
-    if (PyBool_Check( boolObj )) {
-      inpost = !PyObject_IsTrue( boolObj );
-    }
-    else {
-      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: the last parameter must be a boolean!" );
-      return NULL;
-    }
-  }
-
-  if (NaoProxyManager::instance()->moveBodyWithRawTrajectoryData( joint_names, key_frames, time_stamps, isbezier, inpost ))
+  if (NaoProxyManager::instance()->moveBodyWithRawTrajectoryData( joint_names, key_frames, time_stamps, isbezier ))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
@@ -1064,14 +1022,13 @@ static PyObject * PyModule_NaoGetBodyJointPositions( PyObject * self, PyObject *
   return retObj;
 }
 
-/*! \fn moveBodyTo(x,y,theta,cancel_previous_move, is_blocking)
+/*! \fn moveBodyTo(x,y,theta,cancel_previous_move)
  *  \memberof PyNAO
  *  \brief Move the NAO body to a pose at (x,y,theta).
  *  \param float x. X coordinate w.r.t. the current pose.
  *  \param float y. Y coordinate w.r.t. the current pose.
  *  \param float theta. Angular position w.r.t. the current pose.
  *  \param bool cancel_previous_move. Optional cancel previous move command if it is still executing (default False).
- *  \param bool is_blocking. Optional. True = blocking call; False = unblocking call (Default False).
  *  \return bool. True == valid command; False == invalid command.
  */
 static PyObject * PyModule_NaoMoveBodyTo( PyObject * self, PyObject * args )
@@ -1080,13 +1037,10 @@ static PyObject * PyModule_NaoMoveBodyTo( PyObject * self, PyObject * args )
   float ycoord = 0.0;
   float theta = 0.0;
   bool cancelMove = false;
-  bool inpost = true;
 
   PyObject * boolObj = NULL;
-  PyObject * isBlockObj = NULL;
 
-
-  if (!PyArg_ParseTuple( args, "fff|OO", &xcoord, &ycoord, &theta, &boolObj, &isBlockObj )) {
+  if (!PyArg_ParseTuple( args, "fff|O", &xcoord, &ycoord, &theta, &boolObj )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
@@ -1098,20 +1052,13 @@ static PyObject * PyModule_NaoMoveBodyTo( PyObject * self, PyObject * args )
     }
     cancelMove = PyObject_IsTrue( boolObj );
   }
-  if (isBlockObj) {
-    if (!PyBool_Check( isBlockObj )) {
-      PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyTo: optional input parameters must be a boolean!" );
-      return NULL;
-    }
-    inpost = !PyObject_IsTrue( isBlockObj );
-  }
 
   RobotPose pose;
   pose.x = xcoord;
   pose.y = ycoord;
   pose.theta = theta;
 
-  if (NaoProxyManager::instance()->moveBodyTo( pose, cancelMove, inpost ))
+  if (NaoProxyManager::instance()->moveBodyTo( pose, cancelMove ))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
@@ -1354,18 +1301,14 @@ static PyObject * PyModule_NaoPlayWebAudio( PyObject * self, PyObject * args )
 static PyObject * PyModule_NaoPlayAudioID( PyObject * self, PyObject * args )
 {
   int audioID = 0;
-  PyObject * toBlockObj = NULL;
 
-  if (!PyArg_ParseTuple( args, "i|O", &audioID, &toBlockObj )) {
+  if (!PyArg_ParseTuple( args, "i", &audioID )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
-  if (toBlockObj && !PyBool_Check( toBlockObj )) {
-    PyErr_Format( PyExc_ValueError, "PyNAO.say: second parameter should be a boolean!" );
-    return NULL;
-  }
+
   if (audioID > 0) {
-    NaoProxyManager::instance()->playAudioID( audioID, (toBlockObj && PyObject_IsTrue( toBlockObj )) );
+    NaoProxyManager::instance()->playAudioID( audioID );
   }
   Py_RETURN_NONE;
 }
@@ -1460,39 +1403,26 @@ static PyObject * PyModule_NaoStartBehaviour( PyObject * self, PyObject * args )
   }
 }
 
-/*! \fn runBehaviour(name, is_blocking)
+/*! \fn runBehaviour(name)
  *  \memberof PyNAO
  *  \brief Run a behaviour.
  *  \param str name. The name of the behaviour.
- *  \param bool is_blocking. Optional, True = blocking call, False = non blocking. Default: False.
  *  \return bool. True == valid command; False == invalid command.
  */
 /**@}*/
 static PyObject * PyModule_NaoRunBehaviour( PyObject * self, PyObject * args )
 {
   char * name = NULL;
-  bool inpost = true;
-  PyObject * boolObj = NULL;
 
-  if (!PyArg_ParseTuple( args, "s|O", &name, boolObj )) {
+  if (!PyArg_ParseTuple( args, "s", &name )) {
     // PyArg_ParseTuple will set the error status.
     return NULL;
   }
 
-  if (boolObj) {
-    if (!PyBool_Check( boolObj )) {
-      PyErr_Format( PyExc_ValueError, "PyNAO.runBehaviour: last optional input parameter must be a boolean!" );
-      return NULL;
-    }
-    inpost = !PyObject_IsTrue( boolObj );
-  }
-
-  if (NaoProxyManager::instance()->runBehaviour( name, inpost )) {
+  if (NaoProxyManager::instance()->runBehaviour( name ))
     Py_RETURN_TRUE;
-  }
-  else {
+  else
     Py_RETURN_FALSE;
-  }
 }
 
 /*! \fn stopBehaviour(name)
@@ -1767,7 +1697,7 @@ static PyMethodDef PyModule_methods[] = {
   { "startBehaviour", (PyCFunction)PyModule_NaoStartBehaviour, METH_VARARGS,
     "Start playing a behaviour on NAO. Parameter: string name of the behaviour." },
   { "runBehaviour", (PyCFunction)PyModule_NaoRunBehaviour, METH_VARARGS,
-    "Run a behaviour on NAO. Parameter: string name of the behaviour, optional boolean. True = blocking call, False = blocking. Default: False." },
+    "Run a behaviour on NAO. Parameter: string name of the behaviour." },
   { "stopBehaviour", (PyCFunction)PyModule_NaoStopBehaviour, METH_VARARGS,
     "Stop a current playing behaviour on NAO. Parameter: string name of the behaviour." },
   { "stopAllBehaviours", (PyCFunction)PyModule_NaoStopAllBehaviours, METH_NOARGS,

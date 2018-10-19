@@ -12,6 +12,7 @@
 #include <string>
 #include <pthread.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread/thread.hpp>
 
 #include <alerror/alerror.h>
 #include <alcommon/albroker.h>
@@ -89,7 +90,7 @@ public:
   ~NaoProxyManager();
 
   void initWithBroker( boost::shared_ptr<ALBroker> broker, boost::shared_ptr<ALMemoryProxy> memoryProxy );
-  void sayWithVolume( const std::string & text, float volume  = 0.0, bool toBlock = false );
+  bool sayWithVolume( const std::string & text, float volume  = 0.0, bool toBlock = false );
 
   int loadAudioFile( const std::string & text );
   void unloadAudioFile( const int audioID );
@@ -108,7 +109,7 @@ public:
   void getBatteryStatus( int & percentage, bool & isplugged, bool & ischarging, bool & isdischarging );
 
   bool getHeadPos( float & yaw, float & pitch );
-  void moveHeadTo( const float yaw, const float pitch, bool relative = false, float frac_speed = 0.05 );
+  bool moveHeadTo( const float yaw, const float pitch, bool relative = false, float frac_speed = 0.05 );
   void updateHeadPos( const float yaw, const float pitch, const float speed = 0.1 );
 
   void getBodyJointsPos( std::vector<float> & positions,
@@ -124,10 +125,10 @@ public:
   void setLegStiffness( bool isLeft, const float stiff );
 
   bool moveArmWithJointPos( bool isLeft, const std::vector<float> & positions,
-                            float frac_speed = 0.5, bool inpost = false );
+                            float frac_speed = 0.5 );
 
   bool moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
-                                                   std::vector<float> & times_to_reach, bool inpost = false );
+                                                   std::vector<float> & times_to_reach );
 
   bool moveLegWithJointPos( bool isLeft, const std::vector<float> & positions,
                            float frac_speed = 0.5 );
@@ -136,7 +137,7 @@ public:
                             float frac_speed = 0.5 );
 
   bool moveBodyWithRawTrajectoryData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
-                                                   std::vector< std::vector<float> > & time_stamps, bool isBezier, bool inpost = false );
+                                                   std::vector< std::vector<float> > & time_stamps, bool isBezier );
 
   bool setHandPosition( bool isLeft, float openRatio, bool keepStiff );
 
@@ -145,12 +146,12 @@ public:
   void crouch();
   void lyingDown( bool bellyUp = true );
 
-  bool moveBodyTo( const RobotPose & pose, bool cancelPreviousMove = false, bool inpost = false );
+  bool moveBodyTo( const RobotPose & pose, bool cancelPreviousMove = false );
 
   void updateBodyPose( const RobotPose & pose );
 
   bool startBehaviour( const std::string & behaviour );
-  bool runBehaviour( const std::string & behaviour, bool inpost = false );
+  bool runBehaviour( const std::string & behaviour );
   void stopBehaviour( const std::string & behavour );
   void stopAllBehaviours();
 
@@ -161,6 +162,19 @@ public:
   void cancelBodyMovement();
 
   void fini();
+
+  void blockedSpeech( const std::string & text, float volume );
+  void blockedHeadMove( const float yaw, const float pitch, bool relative, float frac_speed );
+  void blockedArmMove( bool isLeftArm, const std::vector<float> & positions, float frac_speed );
+  void blockedArmMoveTraj( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
+      std::vector<float> & times_to_reach );
+  void blockedBodyMoveWithData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
+                                                   std::vector< std::vector<float> > & time_stamps, bool isBezier );
+  void blockedBodyMoveTo( const RobotPose & pose );
+
+  void blockedHandMove( bool isLeft, float openRatio, bool keepStiff );
+
+  void blockedBehaviourRun( const std::string & behaviour );
 
 private:
   static NaoProxyManager * s_pNaoProxyManager;
@@ -173,14 +187,34 @@ private:
   boost::shared_ptr<ALAudioDeviceProxy> audioDeviceProxy_;
   boost::shared_ptr<ALMemoryProxy> memoryProxy_;
   boost::shared_ptr<ALBehaviorManagerProxy> behaviourManagerProxy_;
+
+  boost::thread * speechThread_;
+  boost::thread * headmoveThread_;
+  boost::thread * larmmoveThread_;
+  boost::thread * rarmmoveThread_;
+  boost::thread * lhandmoveThread_;
+  boost::thread * rhandmoveThread_;
+  boost::thread * bodymoveThread_;
+  boost::thread * behaviourThread_;
+  boost::thread * audioThread_;
+
   //motion related data
   ALValue jointLimits_;
 
   struct timeval cmdTimeStamp_;
 
   bool moveInitialised_;
-
   bool isChestLEDPulsating_;
+  bool speechCtrl_;
+  bool headCtrl_;
+  bool lArmCtrl_;
+  bool rArmCtrl_;
+  bool lHandCtrl_;
+  bool rHandCtrl_;
+  bool bodyCtrl_;
+  bool behaviourCtrl_;
+  bool audioCtrl_;
+
   ALValue ledColourHex_;
   ALValue ledChangePeriod_;
   pthread_t runningThread_;

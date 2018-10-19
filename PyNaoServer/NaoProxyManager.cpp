@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include <PyRideCommon.h>
 #include "NaoProxyManager.h"
+#include "PyNAOModule.h"
 
 namespace pyride {
 
@@ -60,8 +61,26 @@ void * timeout_thread( void * controller )
 NaoProxyManager::NaoProxyManager() :
   moveInitialised_( false ),
   isChestLEDPulsating_( false ),
+  speechCtrl_( false ),
+  headCtrl_( false ),
+  lArmCtrl_( false ),
+  rArmCtrl_( false ),
+  lHandCtrl_( false ),
+  rHandCtrl_( false ),
+  bodyCtrl_( false ),
+  behaviourCtrl_( false ),
+  audioCtrl_( false ),
   runningThread_( (pthread_t)NULL ),
-  timeoutThread_( (pthread_t)NULL )
+  timeoutThread_( (pthread_t)NULL ),
+  speechThread_( NULL ),
+  headmoveThread_( NULL ),
+  larmmoveThread_( NULL ),
+  rarmmoveThread_( NULL ),
+  lhandmoveThread_( NULL ),
+  rhandmoveThread_( NULL ),
+  bodymoveThread_( NULL ),
+  behaviourThread_( NULL ),
+  audioThread_( NULL )
 {
   pthread_mutexattr_init( &t_mta );
   pthread_mutexattr_settype( &t_mta, PTHREAD_MUTEX_RECURSIVE );
@@ -199,19 +218,54 @@ void NaoProxyManager::initWithBroker( boost::shared_ptr<ALBroker> broker, boost:
   }
 }
 
-void NaoProxyManager::sayWithVolume( const std::string & text, float volume, bool toBlock )
+bool NaoProxyManager::sayWithVolume( const std::string & text, float volume, bool toBlock )
 {
-  if (speechProxy_ && text.length()) {
+  if (!speechProxy_ || speechCtrl_ || text.length() <= 0)
+    return false;
+
+  if (speechThread_ && speechThread_->get_id() != boost::this_thread::get_id()) {
+    ERROR_MSG( "speech is in progress.\n" );
+    return false;
+  }
+  speechCtrl_ = true;
+
+  if (speechThread_) { // we already in the thread
+    blockedSpeech( text, volume );
+  }
+  else {
+    speechThread_ = new boost::thread( &NaoProxyManager::blockedSpeech, this, text, volume );
+  }
+
+  return true;
+}
+
+void NaoProxyManager::blockedSpeech( const std::string & text, float volume )
+{
+  bool isSuccess = true;
+  try {
     if (volume <= 1.0 && volume > 0.0) {
       speechProxy_->setVolume( volume );
     }
-    if (toBlock) {
-      speechProxy_->say( text );
-    }
-    else {
-      speechProxy_->post.say( text );
-    }
+
+    speechProxy_->say( text );
   }
+  catch (...) {
+    ERROR_MSG( "Unable to speak %s.\n", text.c_str() );
+    isSuccess = false;
+  }
+  speechCtrl_ = false;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onSpeakSuccess" : "onSpeakFailed"), NULL );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done speech.\n" );
+
+  delete speechThread_;
+  speechThread_ = NULL;
 }
 
 bool NaoProxyManager::getHeadPos( float & yaw, float & pitch )
@@ -226,36 +280,70 @@ bool NaoProxyManager::getHeadPos( float & yaw, float & pitch )
   return false;
 }
 
-void NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relative, float frac_speed )
+bool NaoProxyManager::moveHeadTo( const float yaw, const float pitch, bool relative, float frac_speed )
 {
-  if (motionProxy_) {
-    AL::ALValue names = "Head";
-    AL::ALValue stiff = 1.0f;
-    AL::ALValue newHeadPos;
+  if (!motionProxy_ || headCtrl_)
+    return false;
 
-    newHeadPos.arraySetSize( 2 );
+  if (headmoveThread_ && headmoveThread_->get_id() != boost::this_thread::get_id()) {
+    ERROR_MSG( "head movement is in progress.\n" );
+    return false;
+  }
 
-    if (relative) {
-      std::vector<float> curHeadPos;
+  headCtrl_ = true;
+  if (headmoveThread_) { // we already in the thread
+    blockedHeadMove( yaw, pitch, relative, frac_speed );
+  }
+  else {
+    headmoveThread_ = new boost::thread( &NaoProxyManager::blockedHeadMove, this, yaw, pitch, relative, frac_speed );
+  }
+  return true;
+}
 
-      curHeadPos = motionProxy_->getAngles( names, true );
+void NaoProxyManager::blockedHeadMove( const float yaw, const float pitch, bool relative, float frac_speed )
+{
+  AL::ALValue names = "Head";
+  AL::ALValue stiff = 1.0f;
+  AL::ALValue newHeadPos;
 
-      newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
-      newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
-    }
-    else {
-      newHeadPos[0] = clamp( yaw, HEAD_YAW );
-      newHeadPos[1] = clamp( pitch, HEAD_PITCH );
-    }
+  newHeadPos.arraySetSize( 2 );
+
+  if (relative) {
+    std::vector<float> curHeadPos;
+
+    curHeadPos = motionProxy_->getAngles( names, true );
+
+    newHeadPos[0] = clamp( yaw + curHeadPos.at( 0 ), HEAD_YAW );
+    newHeadPos[1] = clamp( pitch + curHeadPos.at( 1 ), HEAD_PITCH );
+  }
+  else {
+    newHeadPos[0] = clamp( yaw, HEAD_YAW );
+    newHeadPos[1] = clamp( pitch, HEAD_PITCH );
+  }
+
+  bool isSuccess = true;
+  try {
     motionProxy_->setStiffnesses( names, stiff );
 
-    try {
-      motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, frac_speed );
-    }
-    catch (...) {
-      ERROR_MSG( "Unable to set angle interpolation to %s", newHeadPos.toString().c_str() );
-    }
+    motionProxy_->angleInterpolationWithSpeed( names, newHeadPos, frac_speed );
   }
+  catch (...) {
+    ERROR_MSG( "Unable to set angle interpolation to %s.\n", newHeadPos.toString().c_str() );
+    isSuccess = false;
+  }
+  headCtrl_ = false;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onHeadActionSuccess" : "onHeadActionFailed"), NULL );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done head movement.\n" );
+
+  delete headmoveThread_;
+  headmoveThread_ = NULL;
 }
 
 void NaoProxyManager::updateHeadPos( const float yaw, const float pitch, const float speed )
@@ -280,7 +368,7 @@ void NaoProxyManager::updateHeadPos( const float yaw, const float pitch, const f
       motionProxy_->setAngles( names, newHeadPos, myspeed );
     }
     catch (...) {
-      ERROR_MSG( "Unable to change angles to %s", newHeadPos.toString().c_str() );
+      ERROR_MSG( "Unable to change angles to %s.\n", newHeadPos.toString().c_str() );
     }
   }
 }
@@ -336,37 +424,77 @@ void NaoProxyManager::lyingDown( bool bellyUp )
   }
 }
 
-bool NaoProxyManager::moveBodyTo( const RobotPose & pose, bool cancelPreviousMove, bool inpost )
+bool NaoProxyManager::moveBodyTo( const RobotPose & pose, bool cancelPreviousMove )
 {
-  if (!motionProxy_) {
-    ERROR_MSG( "Unable to initialise walk." );
+  if (!motionProxy_ || lArmCtrl_ || rArmCtrl_ || bodyCtrl_) {
     return false;
   }
   if (motionProxy_->moveIsActive()) {
     if (cancelPreviousMove) {
       motionProxy_->stopMove();
+      if (bodymoveThread_) {
+        bodymoveThread_->join();
+        delete bodymoveThread_;
+        bodymoveThread_ = NULL;
+      }
     }
     else {
       ERROR_MSG( "Unable to issue new work command, robot is moving." );
       return false;
     }
   }
-  else if (!moveInitialised_) {
-    motionProxy_->wakeUp();
-    motionProxy_->moveInit();
-    moveInitialised_ = true;
+  bodyCtrl_ = true;
+
+  if (bodymoveThread_) { // we already in the thread
+    blockedBodyMoveTo( pose );
   }
-  if (inpost)
-    motionProxy_->post.moveTo( pose.x, pose.y, pose.theta );
-  else
-    motionProxy_->moveTo( pose.x, pose.y, pose.theta );
+  else {
+    bodymoveThread_ = new boost::thread( &NaoProxyManager::blockedBodyMoveTo, this, pose );
+  }
+
   return true;
+}
+
+void NaoProxyManager::blockedBodyMoveTo( const RobotPose & pose )
+{
+  bool isSuccess = true;
+  try {
+    if (!moveInitialised_) {
+      motionProxy_->wakeUp();
+      motionProxy_->moveInit();
+      moveInitialised_ = true;
+    }
+
+    motionProxy_->moveTo( pose.x, pose.y, pose.theta );
+  }
+  catch (...) {
+    ERROR_MSG( "Unable to move body position.\n" );
+    isSuccess = false;
+  }
+  bodyCtrl_ = false;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onMoveBodySuccess" : "onMoveBodyFailed"), NULL );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done body movement.\n" );
+
+  delete bodymoveThread_;
+  bodymoveThread_ = NULL;
 }
 
 void NaoProxyManager::cancelBodyMovement()
 {
   if (motionProxy_ && motionProxy_->moveIsActive()) {
     motionProxy_->stopMove();
+    if (bodymoveThread_) {
+      bodymoveThread_->join();
+      delete bodymoveThread_;
+      bodymoveThread_ = NULL;
+    }
   }
 }
 
@@ -447,15 +575,60 @@ void NaoProxyManager::setLegStiffness( bool isLeft, const float stiff )
 }
 
 bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<float> & positions,
-                                           float frac_speed, bool inpost )
+                                           float frac_speed )
 {
-  if (!motionProxy_)
+  if (!motionProxy_ || bodyCtrl_)
     return false;
 
-  int pos_size = positions.size();
-  if (pos_size != 5) {
-    return false;
+  if (isLeftArm) {
+    if (lArmCtrl_)
+      return false;
+
+    if (larmmoveThread_ && larmmoveThread_->get_id() != boost::this_thread::get_id()) {
+      ERROR_MSG( "left arm movement is in progress.\n" );
+      return false;
+    }
   }
+  else {
+    if (rArmCtrl_)
+      return false;
+
+    if (rarmmoveThread_ && rarmmoveThread_->get_id() != boost::this_thread::get_id()) {
+      ERROR_MSG( "right arm movement is in progress.\n" );
+      return false;
+    }
+  }
+
+  if (positions.size() != 5)
+    return false;
+
+  if (isLeftArm) {
+    lArmCtrl_ = true;
+
+    if (larmmoveThread_) { // we already in the thread
+      blockedArmMove( isLeftArm, positions, frac_speed );
+    }
+    else {
+      larmmoveThread_ = new boost::thread( &NaoProxyManager::blockedArmMove, this, isLeftArm, positions, frac_speed );
+    }
+  }
+  else {
+    rArmCtrl_ = true;
+
+    if (rarmmoveThread_) { // we already in the thread
+      blockedArmMove( isLeftArm, positions, frac_speed );
+    }
+    else {
+      rarmmoveThread_ = new boost::thread( &NaoProxyManager::blockedArmMove, this, isLeftArm, positions, frac_speed );
+    }
+  }
+
+  return true;
+}
+
+void NaoProxyManager::blockedArmMove( bool isLeftArm, const std::vector<float> & positions, float frac_speed )
+{
+  int pos_size = positions.size();
 
   //AL::ALValue names = isLeftArm ? "LArm" : "RArm";
   AL::ALValue names = isLeftArm ? AL::ALValue::array( "LShoulderPitch",
@@ -471,35 +644,109 @@ bool NaoProxyManager::moveArmWithJointPos( bool isLeftArm, const std::vector<flo
 
   AL::ALValue angles;
 
-  motionProxy_->setStiffnesses( names, 1.0 );
-
   angles.arraySetSize( pos_size );
   for (int i = 0; i < pos_size; ++i) {
     angles[i] = clamp( positions[i], (isLeftArm ? L_SHOULDER_PITCH + i : R_SHOULDER_PITCH + i) );
   }
+
+  bool isSuccess = true;
   try {
-    if (inpost)
-      motionProxy_->setAngles( names, angles, frac_speed );
-    else
-      motionProxy_->angleInterpolationWithSpeed( names, angles, frac_speed );
+    motionProxy_->setStiffnesses( names, 1.0 );
+
+    motionProxy_->angleInterpolationWithSpeed( names, angles, frac_speed );
   }
   catch (...) {
-    ERROR_MSG( "Unable to set angle to %s", angles.toString().c_str() );
-    return false;
+    ERROR_MSG( "Unable to set angle to %s.\n", angles.toString().c_str() );
+    isSuccess = false;
   }
-  return true;
+
+  if (isLeftArm) {
+    lArmCtrl_ = false;
+  }
+  else {
+    rArmCtrl_ = false;
+  }
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyObject * arg = Py_BuildValue( "(O)", isLeftArm ? Py_True : Py_False );
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onMoveArmActionSuccess" : "onMoveArmActionFailed"), arg );
+
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done arm movement.\n" );
+  if (isLeftArm) {
+    delete larmmoveThread_;
+    larmmoveThread_ = NULL;
+  }
+  else {
+    delete rarmmoveThread_;
+    rarmmoveThread_ = NULL;
+  }
 }
 
 bool NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
-                                                 std::vector<float> & times_to_reach, bool inpost )
+                                                 std::vector<float> & times_to_reach )
 {
-  if (!motionProxy_)
+  if (!motionProxy_ || bodyCtrl_)
     return false;
+
+  if (isLeftArm) {
+    if (lArmCtrl_)
+      return false;
+
+    if (larmmoveThread_ && larmmoveThread_->get_id() != boost::this_thread::get_id()) {
+      ERROR_MSG( "left arm movement is in progress.\n" );
+      return false;
+    }
+  }
+  else {
+    if (rArmCtrl_)
+      return false;
+
+    if (rarmmoveThread_ && rarmmoveThread_->get_id() != boost::this_thread::get_id()) {
+      ERROR_MSG( "right arm movement is in progress.\n" );
+      return false;
+    }
+  }
 
   size_t traj_size = trajectory.size();
 
   if (traj_size <= 0 || traj_size != times_to_reach.size())
     return false;
+
+  if (isLeftArm) {
+    lArmCtrl_ = true;
+
+    if (larmmoveThread_) { // we already in the thread
+      blockedArmMoveTraj( isLeftArm, trajectory, times_to_reach );
+    }
+    else {
+      larmmoveThread_ = new boost::thread( &NaoProxyManager::blockedArmMoveTraj, this, isLeftArm, trajectory, times_to_reach );
+    }
+  }
+  else {
+    rArmCtrl_ = true;
+
+    if (rarmmoveThread_) { // we already in the thread
+      blockedArmMoveTraj( isLeftArm, trajectory, times_to_reach );
+    }
+    else {
+      rarmmoveThread_ = new boost::thread( &NaoProxyManager::blockedArmMoveTraj, this, isLeftArm, trajectory, times_to_reach );
+    }
+  }
+
+  return true;
+}
+
+void NaoProxyManager::blockedArmMoveTraj( bool isLeftArm, std::vector< std::vector<float> > & trajectory,
+    std::vector<float> & times_to_reach )
+{
+  size_t traj_size = trajectory.size();
 
   //AL::ALValue names = isLeftArm ? "LArm" : "RArm";
   AL::ALValue names = isLeftArm ? AL::ALValue::array( "LShoulderPitch",
@@ -514,8 +761,6 @@ bool NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< s
                                                       "RWristYaw" );
   AL::ALValue joints;
   AL::ALValue times;
-
-  motionProxy_->setStiffnesses( names, 1.0 );
 
   joints.arraySetSize( 5 );
   times.arraySetSize( 5 );
@@ -537,24 +782,51 @@ bool NaoProxyManager::moveArmWithJointTrajectory( bool isLeftArm, std::vector< s
       times[j][jp] = time_to_reach_for_pt;
     }
   }
+
+  bool isSuccess = true;
   try {
-    if (inpost) {
-      motionProxy_->post.angleInterpolation( names, joints, times, true );
-    }
-    else {
-      motionProxy_->angleInterpolation( names, joints, times, true );
-    }
+    motionProxy_->setStiffnesses( names, 1.0 );
+
+    motionProxy_->angleInterpolation( names, joints, times, true );
   }
   catch (...) {
-    ERROR_MSG( "Unable to set angle interpolation to %s", joints.toString().c_str() );
-    return false;
+    ERROR_MSG( "Unable to set angle interpolation to %s.\n", joints.toString().c_str() );
+    isSuccess = false;
   }
-  return true;
+
+  if (isLeftArm) {
+    lArmCtrl_ = false;
+
+  }
+  else {
+    rArmCtrl_ = false;
+  }
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyObject * arg = Py_BuildValue( "(O)", isLeftArm ? Py_True : Py_False );
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onMoveArmActionSuccess" : "onMoveArmActionFailed"), arg );
+
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done arm movement.\n" );
+  if (isLeftArm) {
+    delete larmmoveThread_;
+    larmmoveThread_ = NULL;
+  }
+  else {
+    delete rarmmoveThread_;
+    rarmmoveThread_ = NULL;
+  }
 }
 
 bool NaoProxyManager::moveLegWithJointPos( bool isLeft, const std::vector<float> & positions, float frac_speed )
 {
-  if (!motionProxy_)
+  if (!motionProxy_ || bodyCtrl_)
     return false;
 
   int pos_size = positions.size();
@@ -582,7 +854,7 @@ bool NaoProxyManager::moveLegWithJointPos( bool isLeft, const std::vector<float>
 
 bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions, float frac_speed )
 {
-  if (!motionProxy_)
+  if (!motionProxy_ || bodyCtrl_)
     return false;
 
   int pos_size = positions.size();
@@ -616,18 +888,43 @@ bool NaoProxyManager::moveBodyWithJointPos( const std::vector<float> & positions
 }
 
 bool NaoProxyManager::moveBodyWithRawTrajectoryData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
-                                                 std::vector< std::vector<float> > & time_stamps, bool isBezier, bool inpost )
+                                                 std::vector< std::vector<float> > & time_stamps, bool isBezier )
 {
   // minimal check in this method. Use under you own risk!
   // TODO: this is a silly wrapper function. Should just do a simple cast.
+  if (!motionProxy_ || lArmCtrl_ || rArmCtrl_ || bodyCtrl_)
+    return false;
+
+  if (bodymoveThread_ && bodymoveThread_->get_id() != boost::this_thread::get_id()) {
+    ERROR_MSG( "body movement is in progress.\n" );
+    return false;
+  }
+
   size_t joint_size = joint_names.size();
   if (joint_size != key_frames.size() || joint_size != time_stamps.size()) {
     ERROR_MSG( "Inconsistent trajectory data specification." );
     return false;
   }
+  bodyCtrl_ = true;
 
+  if (bodymoveThread_) { // we already in the thread
+    blockedBodyMoveWithData( joint_names, key_frames, time_stamps, isBezier );
+  }
+  else {
+    bodymoveThread_ = new boost::thread( &NaoProxyManager::blockedBodyMoveWithData, this, joint_names, key_frames, time_stamps, isBezier );
+  }
+
+  return true;
+}
+
+
+void NaoProxyManager::blockedBodyMoveWithData( std::vector<std::string> joint_names, std::vector< std::vector<AngleControlPoint> > & key_frames,
+                                                 std::vector< std::vector<float> > & time_stamps, bool isBezier )
+{
   AL::ALValue keys;
   AL::ALValue times;
+
+  size_t joint_size = joint_names.size();
 
   keys.arraySetSize( joint_size );
   times.arraySetSize( joint_size );
@@ -653,22 +950,80 @@ bool NaoProxyManager::moveBodyWithRawTrajectoryData( std::vector<std::string> jo
     }
   }
 
-  motionProxy_->setStiffnesses( "Body", 1.0 );
-
+  bool isSuccess = true;
   try {
-    if (inpost)
-      motionProxy_->post.angleInterpolationBezier( joint_names, times, keys );
-    else
-      motionProxy_->angleInterpolationBezier( joint_names, times, keys );
+    motionProxy_->setStiffnesses( "Body", 1.0 );
+
+    motionProxy_->angleInterpolationBezier( joint_names, times, keys );
   }
   catch (...) {
     ERROR_MSG( "Unable to move joints in specified raw trajectories." );
-    return false;
+    isSuccess = false;
   }
-  return true;
+  bodyCtrl_ = false;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onMoveBodyActionSuccess" : "onMoveBodyActionFailed"), NULL );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done body movement.\n" );
+
+  delete bodymoveThread_;
+  bodymoveThread_ = NULL;
 }
 
 bool NaoProxyManager::setHandPosition( bool isLeft, float openRatio, bool keepStiff )
+{
+  if (!motionProxy_ || bodyCtrl_)
+    return false;
+
+  if (isLeft) {
+    if (lHandCtrl_)
+      return false;
+
+    if (lhandmoveThread_ && lhandmoveThread_->get_id() != boost::this_thread::get_id()) {
+      ERROR_MSG( "left hand movement is in progress.\n" );
+      return false;
+    }
+  }
+  else {
+    if (rHandCtrl_)
+      return false;
+
+    if (rhandmoveThread_ && rhandmoveThread_->get_id() != boost::this_thread::get_id()) {
+      ERROR_MSG( "right hand movement is in progress.\n" );
+      return false;
+    }
+  }
+
+  if (isLeft) {
+    lHandCtrl_ = true;
+
+    if (lhandmoveThread_) { // we already in the thread
+      blockedHandMove( isLeft, openRatio, keepStiff );
+    }
+    else {
+      lhandmoveThread_ = new boost::thread( &NaoProxyManager::blockedHandMove, this, isLeft, openRatio, keepStiff );
+    }
+  }
+  else {
+    rHandCtrl_ = true;
+
+    if (rhandmoveThread_) { // we already in the thread
+      blockedHandMove( isLeft, openRatio, keepStiff );
+    }
+    else {
+      rhandmoveThread_ = new boost::thread( &NaoProxyManager::blockedHandMove, this, isLeft, openRatio, keepStiff );
+    }
+  }
+
+  return true;
+}
+
+void NaoProxyManager::blockedHandMove( bool isLeft, float openRatio, bool keepStiff )
 {
   float oratio = 1.0;
   if (openRatio <= 1.0 && openRatio >= 0.0) {
@@ -684,26 +1039,54 @@ bool NaoProxyManager::setHandPosition( bool isLeft, float openRatio, bool keepSt
   if (isLeft) {
     names[0] = "LHand";
     angles[0] = oratio * ((float)jointLimits_[L_HAND][1] - (float)jointLimits_[L_HAND][0]);
-    motionProxy_->setStiffnesses( "LHand", 1.0 );
   }
   else {
     names[0] = "RHand";
     angles[0] = oratio * ((float)jointLimits_[R_HAND][1] - (float)jointLimits_[R_HAND][0]);
-    motionProxy_->setStiffnesses( "RHand", 1.0 );
   }
 
+  bool isSuccess = true;
   try {
+    motionProxy_->setStiffnesses( (isLeft ? "LHand" : "RHand"), 1.0 );
+
     motionProxy_->angleInterpolationWithSpeed( names, angles, 0.8 );
+
+    if (!keepStiff) {
+      motionProxy_->setStiffnesses( (isLeft ? "LHand" : "RHand"), 0.0 );
+    }
   }
   catch (...) {
-    ERROR_MSG( "Unable to set angle to %s", angles.toString().c_str() );
-    return false;
+    ERROR_MSG( "Unable to set angle to %s.\n", angles.toString().c_str() );
+    isSuccess = false;
   }
 
-  if (!keepStiff) {
-    motionProxy_->setStiffnesses( (isLeft ? "LHand" : "RHand"), 0.0 );
+  if (isLeft) {
+    lHandCtrl_ = false;
   }
-  return true;
+  else {
+    rHandCtrl_ = false;
+  }
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyObject * arg = Py_BuildValue( "(O)", isLeft ? Py_True : Py_False );
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onHandActionSuccess" : "onHandActionFailed"), arg );
+
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done hand movement.\n" );
+  if (isLeft) {
+    delete lhandmoveThread_;
+    lhandmoveThread_ = NULL;
+  }
+  else {
+    delete rhandmoveThread_;
+    rhandmoveThread_ = NULL;
+  }
 }
 
 int NaoProxyManager::loadAudioFile( const std::string & text )
@@ -743,12 +1126,7 @@ void NaoProxyManager::playWebAudio( const std::string & url )
 void NaoProxyManager::playAudioID( const int audioID, bool toBlock )
 {
   if (audioPlayerProxy_) {
-    if (toBlock) {
-      audioPlayerProxy_->play( audioID );
-    }
-    else {
-      audioPlayerProxy_->post.play( audioID );
-    }
+    audioPlayerProxy_->post.play( audioID );
   }
 }
 
@@ -801,25 +1179,50 @@ bool NaoProxyManager::startBehaviour( const std::string & behaviour )
   return true;
 }
 
-bool NaoProxyManager::runBehaviour( const std::string & behaviour, bool inpost )
+bool NaoProxyManager::runBehaviour( const std::string & behaviour )
 {
-  if (!behaviourManagerProxy_)
+  if (!behaviourManagerProxy_ || behaviourCtrl_)
     return false;
 
+  if (behaviourThread_ && behaviourThread_->get_id() != boost::this_thread::get_id()) {
+    ERROR_MSG( "behaviour is in progress.\n" );
+    return false;
+  }
+
+  behaviourCtrl_ = true;
+
+  if (behaviourThread_) { // we already in the thread
+    blockedBehaviourRun( behaviour );
+  }
+  else {
+    behaviourThread_ = new boost::thread( &NaoProxyManager::blockedBehaviourRun, this, behaviour );
+  }
+  return true;
+}
+
+void NaoProxyManager::blockedBehaviourRun( const std::string & behaviour )
+{
+  bool isSuccess = true;
   try {
-    if (inpost) {
-      behaviourManagerProxy_->post.runBehavior( behaviour );
-    }
-    else {
-      behaviourManagerProxy_->runBehavior( behaviour );
-    }
+    behaviourManagerProxy_->runBehavior( behaviour );
   }
   catch (const ALError& e) {
     ERROR_MSG( "Unable to run behaviour %s.\n", behaviour.c_str() );
-    return false;
+    isSuccess = false;
   }
+  behaviourCtrl_ = false;
 
-  return true;
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onBehaviourComplete" : "onBehaviourFailed"), NULL );
+
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done behaviour.\n" );
+  delete behaviourThread_;
+  behaviourThread_ = NULL;
 }
 
 void NaoProxyManager::stopBehaviour( const std::string & behaviour )
@@ -827,6 +1230,11 @@ void NaoProxyManager::stopBehaviour( const std::string & behaviour )
   if (behaviourManagerProxy_) {
     try {
       behaviourManagerProxy_->stopBehavior( behaviour );
+      if (behaviourThread_) {
+        behaviourThread_->join();
+        delete behaviourThread_;
+        behaviourThread_ = NULL;
+      }
     }
     catch (const ALError& e) {
       ERROR_MSG( "Unable to stop behaviour %s.\n", behaviour.c_str() );
@@ -839,6 +1247,11 @@ void NaoProxyManager::stopAllBehaviours()
   if (behaviourManagerProxy_) {
     try {
       behaviourManagerProxy_->stopAllBehaviors();
+      if (behaviourThread_) {
+        behaviourThread_->join();
+        delete behaviourThread_;
+        behaviourThread_ = NULL;
+      }
     }
     catch (const ALError& e) {
       ERROR_MSG( "Unable to stop all behaviours.\n" );
