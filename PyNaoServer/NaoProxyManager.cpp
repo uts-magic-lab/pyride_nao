@@ -965,7 +965,7 @@ void NaoProxyManager::blockedBodyMoveWithData( std::vector<std::string> joint_na
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();
 
-  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onMoveBodyActionSuccess" : "onMoveBodyActionFailed"), NULL );
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onFullBodyMotionSuccess" : "onFullBodyMotionFailed"), NULL );
 
   PyGILState_Release( gstate );
 

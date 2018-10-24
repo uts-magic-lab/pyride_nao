@@ -776,12 +776,21 @@ static PyObject * PyModule_NaoMoveBodyWithRawTrajectoryData( PyObject * self, Py
   std::vector<std::string> joint_names;
   for (int i = 0; i < listSize; ++i) {
     obj = PyList_GetItem( jointsObj, i );
-    if (!PyString_Check( obj )) {
+    // handle both unicode and string for 2.7.x
+    if (PyString_Check( obj )) {
+      joint_names.push_back( PyString_AsString( obj ) );
+    }
+    else if (PyUnicode_Check( obj )) {
+      PyObject * strObj = PyUnicode_AsUTF8String( obj );
+      joint_names.push_back( PyString_AsString( strObj ) );
+      Py_DECREF( strObj );
+    }
+    else {
       PyErr_Format( PyExc_ValueError, "PyNAO.moveBodyWithRawTrajectoryData: input list item %d "
                    "must be a string that corresponding to a NAO joint!", i );
       return NULL;
     }
-    joint_names.push_back( PyString_AsString( obj ) );
+
   }
 
   std::vector< std::vector<AngleControlPoint> > key_frames;
