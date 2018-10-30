@@ -33,7 +33,7 @@ PYRIDE_LOGGING_DECLARE( "/home/nao/log/tin.log" );
 namespace pyride {
 
 static const int kMaxAudioSamples = 16384;
-static const int kAudioSampleRate = 16000;
+static const int kAudioSampleRate = 48000; //16000;
 static const float kHFOV = 60.97;
 static const float kVFOV = 47.64;
 
