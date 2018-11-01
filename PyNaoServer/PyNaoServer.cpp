@@ -226,7 +226,7 @@ bool PyNaoServer::initDevice()
 
   try {
     audioDevice->callVoid( "setClientPreferences", getName(),
-                          kAudioSampleRate, (int)FRONTCHANNEL, 0 );
+                          kAudioSampleRate, (int)ALLCHANNELS, 0 );
     audioDevice->callVoid( "setParameter", std::string("outputSampleRate"),
                                kAudioSampleRate );
 
@@ -297,11 +297,11 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
   if (!audioBuffer_)
     return;
 
-  memcpy( audioBuffer_, pDataInterleaved, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels );
+  //memcpy( audioBuffer_, pDataInterleaved, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels );
 
   //char nofSkippedChannels = 3;
-  /*
-  const AL_SOUND_FORMAT * iterAudioDataSource = pDataInterleaved+2;
+
+  const AL_SOUND_FORMAT * iterAudioDataSource = pDataInterleaved + 3;
   const AL_SOUND_FORMAT * iterAudioDataSourceEnd = pDataInterleaved+pNbrSamples*pNbOfInputChannels;
 
   AL_SOUND_FORMAT * iterAudioDataSelectedChannel = audioBuffer_;
@@ -310,7 +310,7 @@ void PyNaoServer::process( const int &pNbOfInputChannels, const int &pNbrSamples
     (*iterAudioDataSelectedChannel++) = (*iterAudioDataSource++);
     iterAudioDataSource += 3; //nofSkippedChannels;
   }
-   */
+
   //printf( "captured %d audio samples data size %d nofchan %d\n", pNbrSamples, sizeof( AL_SOUND_FORMAT ) * pNbrSamples*pNbOfInputChannels, pNbOfInputChannels );
   this->processAndSendAudioData( audioBuffer_, pNbrSamples );
 }
