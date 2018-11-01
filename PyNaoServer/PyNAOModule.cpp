@@ -936,7 +936,7 @@ static PyObject * PyModule_NaoGetArmJointPositions( PyObject * self, PyObject * 
   NaoProxyManager::instance()->getArmJointsPos( isLeftArm, positions, useSensor );
   PyObject * retObj = PyDict_New();
   for (int i = 0; i < 5; i++) {
-    PyObject * numObj = PyFloat_FromDouble( positions.at( i ) );
+    PyObject * numObj = PyFloat_FromDouble( roundf(positions.at( i ) * 1E6) / 1E6 );
     PyDict_SetItemString( retObj, (isLeftArm ? kLeftArmKWlist[i] : kRightArmKWlist[i]), numObj );
     Py_DECREF( numObj );
   }
@@ -984,7 +984,7 @@ static PyObject * PyModule_NaoGetLegJointPositions( PyObject * self, PyObject * 
   NaoProxyManager::instance()->getLegJointsPos( isLeftLeg, positions, useSensor );
   PyObject * retObj = PyDict_New();
   for (int i = 0; i < 6; i++) {
-    PyObject * numObj = PyFloat_FromDouble( positions.at( i ) );
+    PyObject * numObj = PyFloat_FromDouble( roundf(positions.at( i ) * 1E6) / 1E6 );
     PyDict_SetItemString( retObj, (isLeftLeg ? kLeftLegKWlist[i] : kRightLegKWlist[i]), numObj );
     Py_DECREF( numObj );
   }
@@ -1024,7 +1024,7 @@ static PyObject * PyModule_NaoGetBodyJointPositions( PyObject * self, PyObject *
   NaoProxyManager::instance()->getBodyJointsPos( positions, useSensor );
   PyObject * retObj = PyDict_New();
   for (int i = 0; i < 24; i++) {
-    PyObject * numObj = PyFloat_FromDouble( positions.at( i ) );
+    PyObject * numObj = PyFloat_FromDouble( roundf( positions.at( i ) * 1E6) / 1E6 );
     PyDict_SetItemString( retObj, kBodyKWlist[i], numObj );
     Py_DECREF( numObj );
   }
