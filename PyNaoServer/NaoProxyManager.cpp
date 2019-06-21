@@ -1123,11 +1123,56 @@ void NaoProxyManager::playWebAudio( const std::string & url )
   }
 }
 
-void NaoProxyManager::playAudioID( const int audioID, bool toBlock )
+bool NaoProxyManager::playAudioID( const int audioID )
 {
-  if (audioPlayerProxy_) {
-    audioPlayerProxy_->post.play( audioID );
+  if (!audioPlayerProxy_ || audioCtrl_) {
+    return false;
   }
+
+  if (audioThread_ && audioThread_->get_id() != boost::this_thread::get_id()) {
+    ERROR_MSG( "audio play is in progress.\n" );
+    return false;
+  }
+  audioCtrl_ = true;
+
+  if (audioThread_) { // we already in the thread
+    blockedPlayAudio( audioID );
+  }
+  else {
+    audioThread_ = new boost::thread( &NaoProxyManager::blockedPlayAudio, this, audioID );
+  }
+
+  return true;
+}
+
+void NaoProxyManager::blockedPlayAudio( const int audioID )
+{
+  bool isSuccess = true;
+
+  try {
+    audioPlayerProxy_->play( audioID );
+  }
+  catch (...) {
+    ERROR_MSG( "Unable to play audio id %d.\n", audioID );
+    isSuccess = false;
+  }
+  audioCtrl_ = false;
+
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+
+  PyObject * arg = Py_BuildValue( "(i)", audioID );
+
+  PyNAOModule::instance()->invokeCallback( (isSuccess ? "onPlayAudioSuccess" : "onPlayAudioFailed"), arg );
+
+  Py_DECREF( arg );
+
+  PyGILState_Release( gstate );
+
+  //DEBUG_MSG( "done audio.\n" );
+
+  delete audioThread_;
+  audioThread_ = NULL;
 }
 
 int NaoProxyManager::getAudioVolume()

@@ -202,7 +202,7 @@ static PyObject * PyModule_NaoSayWithVolume( PyObject * self, PyObject * args )
  *  \param float head_pitch. Must be in radian.
  *  \param bool relative. True == relative angle values; False == absolute angle values. Optional, default is False.
  *  \param float frac_speed. Fraction of the maximum speed, i.e. within (0..1] Optional, default = 0.05.
- *  \return None.
+ *  \return True == valid command; False otherwise.
  */
 static PyObject * PyModule_NaoMoveHeadTo( PyObject * self, PyObject * args )
 {

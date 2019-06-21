@@ -96,7 +96,7 @@ public:
   void unloadAudioFile( const int audioID );
   void unloadAllAudioFiles();
   void playWebAudio( const std::string & url );
-  void playAudioID( const int audioID, bool toBlock = false );
+  bool playAudioID( const int audioID );
   int  getAudioVolume();
   void setAudioVolume( const int vol );
   void pauseAudioID( const int audioID );
