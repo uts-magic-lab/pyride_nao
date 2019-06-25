@@ -14,7 +14,11 @@
 #include <boost/thread/thread.hpp>
 #include <alcommon/alproxy.h>
 
-#include <celt.h>
+#ifdef OLD_NAO
+#include <opus.h>
+#else
+#include <opus/opus.h>
+#endif
 
 #include "RTPDataReceiver.h"
 #include "PyModuleStub.h"
@@ -44,8 +48,7 @@ private:
   RTPDataReceiver * dataStream_;
   PyModuleExtension * pyExtension_;
 
-  CELTMode * celtMode_;
-  CELTDecoder * audioDecoder_;
+  OpusDecoder * audioDecoder_;
 
   boost::thread * streaming_data_thread_;
 

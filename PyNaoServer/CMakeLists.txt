@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 project(PyNaoServer)
 find_package(qibuild)
 
-add_definitions( -DUSE_ENCRYPTION -DNAO_BUILD)
+add_definitions( -DUSE_ENCRYPTION -DOLD_NAO )
 
 qi_create_lib( pynaoserver
   SRC main.cpp
@@ -15,6 +15,6 @@ qi_create_lib( pynaoserver
   SHARED
 )
 
-qi_use_lib(pynaoserver ALCOMMON ALVISION ALAUDIO pyridecore celt)
+qi_use_lib(pynaoserver ALCOMMON ALVISION ALAUDIO pyridecore)
 # qi_create_bin(...)
 

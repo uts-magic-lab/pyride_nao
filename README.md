@@ -16,7 +16,7 @@ PyRIDE for NAO is dependent on several open source third-party libraries. Since 
 Assume you have placed PyRIDE for NAO source code under a working qibuild worktree and you have a working cross compiler toolchain ```cross-atom```, use the following command to build libraries using qibuild build system.
 
 ```
-qibuild package -c cross-atom --release
+qibuild package -c cross-atom -DOLD_NAO=ON --release
 ```
 
 To install the compiled library package, e.g. commoncpp2, on local machine:

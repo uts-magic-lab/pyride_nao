@@ -176,6 +176,8 @@ public:
 
   void blockedBehaviourRun( const std::string & behaviour );
 
+  void blockedPlayAudio( const int audioID );
+
 private:
   static NaoProxyManager * s_pNaoProxyManager;
 
