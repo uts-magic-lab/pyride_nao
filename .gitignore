@@ -33,3 +33,4 @@ package
 
 # buiild directories
 build-*
+.qi
